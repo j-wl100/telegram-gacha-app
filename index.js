@@ -1,8 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path'); // <- 1. Importar path para manejar carpetas
 const app = express();
 
 app.use(express.json());
+
+// 2. Permitir que Express sirva tu archivo index.html y recursos estáticos desde la raíz
+app.use(express.static(__dirname));
 
 // Conexión a MongoDB utilizando la variable de entorno de Render
 mongoose.connect(process.env.MONGO_URI)
@@ -32,10 +36,6 @@ app.get('/api/usuario/:id', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor activo en el puerto ${PORT}`);
-});
 // Ruta para realizar una tirada de Gacha
 app.post('/api/gacha', async (req, res) => {
   try {
@@ -101,4 +101,10 @@ app.post('/api/gacha', async (req, res) => {
     console.error('Error al procesar la tirada del gacha:', error);
     res.status(500).json({ success: false, error: 'Error interno del servidor' });
   }
+});
+
+// 3. `app.listen` va obligatoriamente al final de todo el archivo
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor activo en el puerto ${PORT}`);
 });
