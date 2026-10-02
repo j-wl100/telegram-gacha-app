@@ -36,3 +36,69 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor activo en el puerto ${PORT}`);
 });
+// Ruta para realizar una tirada de Gacha
+app.post('/api/gacha', async (req, res) => {
+  try {
+    const { telegramId } = req.body;
+    const costoTirada = 50; // Costo por cada tirada
+
+    // 1. Buscar al usuario en la base de datos
+    let user = await Usuario.findOne({ telegramId });
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
+    }
+
+    // 2. Verificar si tiene suficientes monedas
+    if (user.monedas < costoTirada) {
+      return res.status(400).json({ success: false, error: 'No tienes suficientes monedas' });
+    }
+
+    // 3. Descontar el costo de la tirada
+    user.monedas -= costoTirada;
+
+    // 4. Pool de personajes con temática Cyberpunk / Techwear
+    const poolPersonajes = [
+      { id: 'p_01', nombre: 'Operativo Techwear', rareza: 'Común', tipo: 'Tactical' },
+      { id: 'p_02', nombre: 'Hacker Ciber-Minimalista', rareza: 'Común', tipo: 'Netrunner' },
+      { id: 'p_03', nombre: 'Androide RK-Model', rareza: 'Raro', tipo: 'Cyber' },
+      { id: 'p_04', nombre: 'Unidad Élite ZENITH', rareza: 'Épico', tipo: 'Legendary' }
+    ];
+
+    // 5. Sistema de probabilidades (Probabilidad ponderada)
+    const rand = Math.random();
+    let personajeObtenido;
+
+    if (rand < 0.05) { 
+      // 5% de probabilidad para Épico
+      personajeObtenido = poolPersonajes.find(p => p.rareza === 'Épico');
+    } else if (rand < 0.30) { 
+      // 25% de probabilidad para Raro
+      personajeObtenido = poolPersonajes.find(p => p.rareza === 'Raro');
+    } else { 
+      // 70% de probabilidad para Comunes
+      const comunes = poolPersonajes.filter(p => p.rareza === 'Común');
+      personajeObtenido = comunes[Math.floor(Math.random() * comunes.length)];
+    }
+
+    // 6. Registrar el personaje obtenido en el inventario del usuario
+    user.personajes.push({
+      ...personajeObtenido,
+      fechaObtencion: new Date()
+    });
+
+    // 7. Guardar cambios en MongoDB Atlas
+    await user.save();
+
+    // 8. Responder a la Mini App con el resultado
+    res.json({
+      success: true,
+      personaje: personajeObtenido,
+      monedasRestantes: user.monedas,
+      inventario: user.personajes
+    });
+
+  } catch (error) {
+    console.error('Error al procesar la tirada del gacha:', error);
+    res.status(500).json({ success: false, error: 'Error interno del servidor' });
+  }
+});
