@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+ 
 // Servir la carpeta 'app' para la interfaz web
 app.use('/app', express.static('app'));
  
