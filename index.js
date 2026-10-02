@@ -1,17 +1,38 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Servir la carpeta 'app' para la interfaz web
-app.use('/app', express.static('app'));
+app.use(express.json());
 
-// Servir el archivo de personajes para que la web los lea
-app.use('/personajes.json', express.static('personajes.json'));
+// Conexión a MongoDB utilizando la variable de entorno de Render
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('✅ Conectado exitosamente a MongoDB Atlas'))
+  .catch(err => console.error('❌ Error al conectar a MongoDB:', err));
 
-app.get('/', (req, res) => {
-    res.send('¡Servidor Gacha Activo!');
+// Definir el modelo de usuario para el gacha
+const usuarioSchema = new mongoose.Schema({
+  telegramId: { type: String, required: true, unique: true },
+  monedas: { type: Number, default: 100 }, // Empiezan con 100 monedas de regalo
+  personajes: { type: Array, default: [] }
 });
 
+const Usuario = mongoose.model('Usuario', usuarioSchema);
+
+// Ruta para verificar o registrar al usuario al abrir la Mini App
+app.get('/api/usuario/:id', async (req, res) => {
+  try {
+    let user = await Usuario.findOne({ telegramId: req.params.id });
+    if (!user) {
+      user = new Usuario({ telegramId: req.params.id });
+      await user.save();
+    }
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Error en el servidor' });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en el puerto ${PORT}`);
+  console.log(`Servidor activo en el puerto ${PORT}`);
 });
