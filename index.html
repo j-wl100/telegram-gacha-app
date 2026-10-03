@@ -74,7 +74,7 @@
     <div class="header-action">
         <div class="balance-box" id="user-balance">$100</div>
         <div class="search-container">
-            <input type="text" class="search-input" id="search-input" placeholder="BUSCAR PERSONAJES / CONTRASEÑA ADMIN" oninput="procesarBusqueda()">
+            <input type="text" class="search-input" id="search-input" placeholder="BUSCAR PERSONAJES" oninput="procesarBusqueda()">
         </div>
     </div>
 
@@ -130,7 +130,7 @@
     </div>
 
     <script>
-        const PASSWORD_ADMIN = "admin123";
+        const PASSWORD_ADMIN = "J";
         let usuarioActual = localStorage.getItem("telegramUser") || null;
         let datosUsuario = {};
         let listaPersonajesGlobal = [];
@@ -335,12 +335,23 @@
         function dibujarRuletaCanvas(nombres) {
             const canvas = document.getElementById("wheel");
             if (!canvas) return;
+            
+            // Corrección de nitidez para pantallas de móviles
+            const size = 130;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            canvas.style.width = `${size}px`;
+            canvas.style.height = `${size}px`;
+            
             const ctx = canvas.getContext("2d");
-            const radio = canvas.width / 2;
-            const centro = canvas.width / 2;
+            ctx.scale(dpr, dpr);
+
+            const radio = size / 2;
+            const centro = size / 2;
             const anguloSeccion = (2 * Math.PI) / nombres.length;
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, size, size);
 
             nombres.forEach((nombre, i) => {
                 const anguloInicio = i * anguloSeccion;
@@ -364,7 +375,7 @@
                 ctx.textBaseline = "middle";
                 ctx.fillStyle = "#fff";
                 ctx.font = "10px monospace";
-                // Acortar nombre si es muy largo
+                
                 let textoCorto = nombre.length > 9 ? nombre.substring(0, 8) + "." : nombre;
                 ctx.fillText(textoCorto, radio - 8, 0);
                 ctx.restore();
