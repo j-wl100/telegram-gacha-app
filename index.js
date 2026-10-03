@@ -5,17 +5,16 @@ const path = require('path');
 const app = express();
 
 app.use(express.json());
-app.use(express.static(__dirname)); // Sirve los archivos HTML y estáticos de la raíz
+app.use(express.static(__dirname));
 
-// Conexión a MongoDB Atlas (Cambia <password> y los datos por los tuyos)
+// Conexión a MongoDB Atlas (Reemplaza con tus datos reales)
 mongoose.connect('mongodb+srv://usuario:password@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
-.then(() => console.log("Conectado a MongoDB Atlas con éxito"))
-.catch(err => console.error("Error conectando a MongoDB:", err));
+.then(() => console.log("Conectado a MongoDB Atlas"))
+.catch(err => console.error(err));
 
-// Esquema de Usuario en Mongoose
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     saldo: { type: Number, default: 150 },
@@ -23,88 +22,64 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', userSchema);
 
-// 1. Obtener o crear perfil del usuario
+// Obtener o crear usuario
 app.get('/api/usuario/:userId', async (req, res) => {
-    try {
-        let user = await User.findOne({ userId: req.params.userId });
-        if (!user) {
-            user = new User({ userId: req.params.userId, saldo: 150, inventario: [] });
-            await user.save();
-        }
-        res.json(user);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    let user = await User.findOne({ userId: req.params.userId });
+    if (!user) {
+        user = new User({ userId: req.params.userId, saldo: 150, inventario: [] });
+        await user.save();
     }
+    res.json(user);
 });
 
-// 2. Girar la ruleta (Descuenta 50 y guarda el personaje en MongoDB)
+// Girar la ruleta (elige aleatoriamente de personajes.json)
 app.post('/api/ruleta', async (req, res) => {
-    try {
-        const { userId } = req.body;
-        let user = await User.findOne({ userId });
-        if (!user || user.saldo < 50) {
-            return res.status(400).json({ error: "Saldo insuficiente" });
-        }
-
-        const personajesRaw = fs.readFileSync(path.join(__dirname, 'personajes.json'), 'utf8');
-        const personajes = JSON.parse(personajesRaw);
-        const randomPersonaje = personajes[Math.floor(Math.random() * personajes.length)];
-
-        user.saldo -= 50;
-        user.inventario.push(randomPersonaje);
-        await user.save();
-
-        res.json({ success: true, personaje: randomPersonaje, nuevoSaldo: user.saldo });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    const { userId } = req.body;
+    let user = await User.findOne({ userId });
+    if (!user || user.saldo < 50) {
+        return res.status(400).json({ error: "Saldo insuficiente" });
     }
+
+    const personajes = JSON.parse(fs.readFileSync(path.join(__dirname, 'personajes.json'), 'utf8'));
+    const randomPersonaje = personajes[Math.floor(Math.random() * personajes.length)];
+
+    user.saldo -= 50;
+    user.inventario.push(randomPersonaje);
+    await user.save();
+
+    res.json({ success: true, personaje: randomPersonaje, nuevoSaldo: user.saldo });
 });
 
-// 3. Comprar personaje directo en la tienda
+// Comprar personaje directo en la tienda
 app.post('/api/comprar', async (req, res) => {
-    try {
-        const { userId, personajeIndex } = req.body;
-        let user = await User.findOne({ userId });
-        const precio = 150;
+    const { userId, personajeIndex } = req.body;
+    let user = await User.findOne({ userId });
+    const precio = 150;
 
-        if (!user || user.saldo < precio) {
-            return res.status(400).json({ error: "Saldo insuficiente" });
-        }
-
-        const personajesRaw = fs.readFileSync(path.join(__dirname, 'personajes.json'), 'utf8');
-        const personajes = JSON.parse(personajesRaw);
-        const personajeElegido = personajes[personajeIndex];
-
-        if (!personajeElegido) return res.status(400).json({ error: "Personaje no encontrado" });
-
-        user.saldo -= precio;
-        user.inventario.push(personajeElegido);
-        await user.save();
-
-        res.json({ success: true, nuevoSaldo: user.saldo, personaje: personajeElegido });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (!user || user.saldo < precio) {
+        return res.status(400).json({ error: "Saldo insuficiente" });
     }
+
+    const personajes = JSON.parse(fs.readFileSync(path.join(__dirname, 'personajes.json'), 'utf8'));
+    const personajeElegido = personajes[personajeIndex];
+
+    user.saldo -= precio;
+    user.inventario.push(personajeElegido);
+    await user.save();
+
+    res.json({ success: true, nuevoSaldo: user.saldo, personaje: personajeElegido });
 });
 
-// 4. Listar usuarios (Para el comando /deleteperfil o panel admin)
+// Listar usuarios para administración / borrado
 app.get('/api/admin/usuarios', async (req, res) => {
-    try {
-        const users = await User.find({}, 'userId saldo inventario');
-        res.json(users);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    const users = await User.find({}, 'userId saldo inventario');
+    res.json(users);
 });
 
-// 5. Borrar perfil de un usuario específico (/deleteperfil)
+// Borrar perfil de usuario
 app.delete('/api/admin/perfil/:userId', async (req, res) => {
-    try {
-        await User.deleteOne({ userId: req.params.userId });
-        res.json({ success: true, message: "Perfil eliminado correctamente" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    await User.deleteOne({ userId: req.params.userId });
+    res.json({ success: true });
 });
 
-app.listen(3000, () => console.log("Servidor en ejecución en el puerto 3000"));
+app.listen(3000, () => console.log("Servidor corriendo en el puerto 3000"));
