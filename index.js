@@ -30,12 +30,12 @@ const User = mongoose.model('User', userSchema);
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "TU_TOKEN_DE_TELEGRAM_AQUI";
 
-// REGISTRO DE NUEVO USUARIO
+// REGISTRO DE NUEVO USUARIO (CORREGIDO)
 app.post('/api/registrar', async (req, res) => {
     try {
         const { telegramUser, nombre, edad } = req.body;
         if (!telegramUser || !nombre || !edad) {
-            return.status(400).json({ error: "Faltan datos obligatorios" });
+            return res.status(400).json({ error: "Faltan datos obligatorios" });
         }
         let user = await User.findOne({ telegramUser });
         if (user) {
@@ -61,7 +61,7 @@ app.get('/api/usuario/:telegramUser', async (req, res) => {
     }
 });
 
-// GIRAR RULETA
+// GIRAR RULETA (GACHA DE PERSONAJES)
 app.post('/api/ruleta', async (req, res) => {
     try {
         const { telegramUser } = req.body;
@@ -82,6 +82,95 @@ app.post('/api/ruleta', async (req, res) => {
         res.json({ success: true, personaje: randomPersonaje, nuevoSaldo: user.saldo });
     } catch (e) {
         res.status(500).json({ error: "Error al girar la ruleta" });
+    }
+});
+
+// RECOMPENSA DIARIA
+app.post('/api/diario', async (req, res) => {
+    try {
+        const { telegramUser } = req.body;
+        let user = await User.findOne({ telegramUser });
+        if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+        user.saldo += 100;
+        await user.save();
+        res.json({ success: true, nuevoSaldo: user.saldo, mensaje: "¡Recompensa diaria reclamada! +$100" });
+    } catch (e) {
+        res.status(500).json({ error: "Error al reclamar diario" });
+    }
+});
+
+// MINAR CRÉDITOS
+app.post('/api/minar', async (req, res) => {
+    try {
+        const { telegramUser } = req.body;
+        let user = await User.findOne({ telegramUser });
+        if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+        user.saldo += 50;
+        await user.save();
+        res.json({ success: true, nuevoSaldo: user.saldo, mensaje: "¡Has minado con éxito! +$50" });
+    } catch (e) {
+        res.status(500).json({ error: "Error al minar créditos" });
+    }
+});
+
+// CRIMEN (RIESGO / RECOMPENSA)
+app.post('/api/crimen', async (req, res) => {
+    try {
+        const { telegramUser } = req.body;
+        let user = await User.findOne({ telegramUser });
+        if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+        const exito = Math.random() < 0.5;
+        let cambio = 0;
+        let mensaje = "";
+
+        if (exito) {
+            cambio = Math.floor(Math.random() * 80) + 20;
+            user.saldo += cambio;
+            mensaje = `[ ÉXITO ] Operación ilegal completada. Ganaste +$${cambio}`;
+        } else {
+            cambio = Math.floor(Math.random() * 40) + 10;
+            if (user.saldo < cambio) cambio = user.saldo;
+            user.saldo -= cambio;
+            mensaje = `[ FRACASO ] La policía te interceptó. Perdiste -$${cambio}`;
+        }
+        await user.save();
+        res.json({ success: true, nuevoSaldo: user.saldo, mensaje });
+    } catch (e) {
+        res.status(500).json({ error: "Error al ejecutar el crimen" });
+    }
+});
+
+// APOSTAR CANTIDAD
+app.post('/api/apostar', async (req, res) => {
+    try {
+        const { telegramUser, cantidad } = req.body;
+        let user = await User.findOne({ telegramUser });
+        const monto = parseInt(cantidad);
+
+        if (!user || monto <= 0 || isNaN(monto)) {
+            return res.status(400).json({ error: "Cantidad inválida" });
+        }
+        if (user.saldo < monto) {
+            return res.status(400).json({ error: "No tienes suficiente saldo para apostar esa cantidad" });
+        }
+
+        const gana = Math.random() < 0.45;
+        let mensaje = "";
+
+        if (gana) {
+            user.saldo += monto;
+            mensaje = `[ APUESTA GANADA ] ¡Duplicaste tu apuesta! +$${monto}`;
+        } else {
+            user.saldo -= monto;
+            mensaje = `[ APUESTA PERDIDA ] La suerte no estuvo de tu lado. -$${monto}`;
+        }
+        await user.save();
+        res.json({ success: true, nuevoSaldo: user.saldo, mensaje });
+    } catch (e) {
+        res.status(500).json({ error: "Error al procesar la apuesta" });
     }
 });
 
@@ -106,21 +195,6 @@ app.post('/api/comprar', async (req, res) => {
         res.json({ success: true, nuevoSaldo: user.saldo, personaje: personajeElegido });
     } catch (e) {
         res.status(500).json({ error: "Error al procesar compra" });
-    }
-});
-
-// MINAR / RECLAMAR CRÉDITOS
-app.post('/api/minar', async (req, res) => {
-    try {
-        const { telegramUser } = req.body;
-        let user = await User.findOne({ telegramUser });
-        if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
-
-        user.saldo += 50;
-        await user.save();
-        res.json({ success: true, nuevoSaldo: user.saldo });
-    } catch (e) {
-        res.status(500).json({ error: "Error al minar créditos" });
     }
 });
 
