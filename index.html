@@ -21,7 +21,6 @@
             overflow: hidden;
         }
 
-        /* FILA DE BALANCE Y BÚSQUEDA */
         .header-action {
             display: flex;
             align-items: center;
@@ -65,7 +64,6 @@
             color: #777777;
         }
 
-        /* CONTENIDO PRINCIPAL */
         .main-content {
             flex: 1;
             overflow-y: auto;
@@ -77,7 +75,6 @@
             display: block;
         }
 
-        /* GRILLA (INVENTARIO Y TIENDA) */
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -108,26 +105,6 @@
             line-height: 1.4;
         }
 
-        .card-btn {
-            border: 1px solid #ffffff;
-            background: #000;
-            color: #ffffff;
-            padding: 6px;
-            font-size: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            width: 100%;
-            margin-top: 4px;
-            font-family: monospace;
-        }
-
-        .card-btn:hover {
-            background: #ffffff;
-            color: #000000;
-        }
-
-        /* ALEATORIO (RULETA CENTRADA) */
         .roulette-container {
             display: flex;
             flex-direction: column;
@@ -193,7 +170,42 @@
             color: #000000;
         }
 
-        /* NAVEGACIÓN INFERIOR */
+        .shop-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .shop-item {
+            border: 1px solid #ffffff;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #000;
+        }
+
+        .shop-item small {
+            color: #888888;
+            font-size: 10px;
+        }
+
+        .shop-btn {
+            border: 1px solid #ffffff;
+            background: #000;
+            color: #ffffff;
+            padding: 8px 15px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .shop-btn:hover {
+            background: #ffffff;
+            color: #000000;
+        }
+
         .nav-bar {
             display: flex;
             border-top: 1px solid #ffffff;
@@ -227,7 +239,6 @@
 </head>
 <body>
 
-    <!-- FILA DE DINERO Y BÚSQUEDA -->
     <div class="header-action">
         <div class="balance-box" id="user-balance">$150</div>
         <div class="search-container">
@@ -235,12 +246,12 @@
         </div>
     </div>
 
-    <!-- SECCIÓN 1: INVENTARIO -->
+    <!-- INVENTARIO -->
     <div id="section-inventario" class="main-content active">
         <div class="grid" id="inventory-grid"></div>
     </div>
 
-    <!-- SECCIÓN 2: ALEATORIO -->
+    <!-- ALEATORIO (RULETA) -->
     <div id="section-aleatorio" class="main-content">
         <div class="roulette-container">
             <div class="wheel-wrapper">
@@ -253,19 +264,33 @@
         </div>
     </div>
 
-    <!-- SECCIÓN 3: TIENDA (Muestra los personajes disponibles para comprar) -->
+    <!-- TIENDA -->
     <div id="section-tienda" class="main-content">
-        <div class="grid" id="shop-grid"></div>
+        <div class="shop-list">
+            <div class="shop-item">
+                <div>
+                    <strong>Pack x100 Créditos</strong><br>
+                    <small>Recarga estándar</small>
+                </div>
+                <button class="shop-btn" onclick="comprarCreditos(100)">COMPRAR</button>
+            </div>
+            <div class="shop-item">
+                <div>
+                    <strong>Cofre de Personaje</strong><br>
+                    <small>Obtén un personaje aleatorio</small>
+                </div>
+                <button class="shop-btn" onclick="comprarCofre()">COMPRAR ($100)</button>
+            </div>
+        </div>
     </div>
 
-    <!-- NAVEGACIÓN INFERIOR -->
     <div class="nav-bar">
         <button class="nav-btn active" onclick="cambiarSeccion('inventario', this)">INVENTARIO</button>
         <button class="nav-btn" onclick="cambiarSeccion('aleatorio', this)">ALEATORIO</button>
         <button class="nav-btn" onclick="cambiarSeccion('tienda', this)">TIENDA</button>
     </div>
 
-    <!-- CARGA EL ARCHIVO DE PERSONAJES -->
+    <!-- CARGA TU ARCHIVO JS REAL -->
     <script src="personajes.js"></script>
 
     <script>
@@ -276,7 +301,7 @@
             const grid = document.getElementById('inventory-grid');
             
             if (!inventarioUsuario || inventarioUsuario.length === 0) {
-                grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #777; padding: 40px; font-size: 12px;">NO TIENES PERSONAJES EN TU INVENTARIO.<br>¡CONSIGUE ALGUNOS EN LA TIENDA O RULETA!</div>`;
+                grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #777; padding: 40px; font-size: 12px;">NO TIENES PERSONAJES.<br>¡GANA ALGUNOS EN LA RULETA O TIENDA!</div>`;
                 return;
             }
 
@@ -303,44 +328,6 @@
             `).join('');
         }
 
-        function renderTienda() {
-            const grid = document.getElementById('shop-grid');
-
-            if (typeof personajesDisponibles === 'undefined' || personajesDisponibles.length === 0) {
-                grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #777; padding: 40px; font-size: 12px;">NO HAY PERSONAJES EN LA TIENDA</div>`;
-                return;
-            }
-
-            grid.innerHTML = personajesDisponibles.map((p, index) => `
-                <div class="card">
-                    <div class="card-img" style="background-image: url('${p.imagen}');"></div>
-                    <div class="card-text">
-                        ID / ${p.id}<br>
-                        RAREZA : ${p.rareza}<br>
-                        #${p.categoria}
-                    </div>
-                    <button class="card-btn" onclick="comprarPersonaje(${index})">COMPRAR ($100)</button>
-                </div>
-            `).join('');
-        }
-
-        function comprarPersonaje(index) {
-            const precio = 100;
-            if (saldo < precio) {
-                alert("Saldo insuficiente.");
-                return;
-            }
-
-            saldo -= precio;
-            document.getElementById('user-balance').innerText = "$" + saldo;
-
-            const personajeComprado = personajesDisponibles[index];
-            inventarioUsuario.push(personajeComprado);
-            localStorage.setItem('inventario_usuario', JSON.stringify(inventarioUsuario));
-
-            alert(`¡Has comprado a ${personajeComprado.id}! Ya está en tu inventario.`);
-        }
-
         function filtrarInventario() {
             const texto = document.getElementById('search-input').value;
             renderInventario(texto);
@@ -355,8 +342,6 @@
 
             if(seccion === 'inventario') {
                 renderInventario();
-            } else if(seccion === 'tienda') {
-                renderTienda();
             }
         }
 
@@ -368,8 +353,8 @@
                 return;
             }
 
-            if (typeof personajesDisponibles === 'undefined' || personajesDisponibles.length === 0) {
-                alert("Error: No se encuentra la lista en personajes.js");
+            if (typeof personajesInventario === 'undefined' || personajesInventario.length === 0) {
+                alert("Error: No se encuentra o está vacío el archivo personajes.js");
                 return;
             }
 
@@ -388,19 +373,47 @@
                 girando = false;
                 btn.disabled = false;
 
-                const randomIndex = Math.floor(Math.random() * personajesDisponibles.length);
-                const personajeObtenido = personajesDisponibles[randomIndex];
+                const randomIndex = Math.floor(Math.random() * personajesInventario.length);
+                const personajeObtenido = personajesInventario[randomIndex];
 
                 inventarioUsuario.push(personajeObtenido);
                 localStorage.setItem('inventario_usuario', JSON.stringify(inventarioUsuario));
 
-                alert(`¡Has obtenido en la ruleta a: ${personajeObtenido.id} (${personajeObtenido.rareza})!`);
+                alert(`¡Has obtenido a: ${personajeObtenido.id} (${personajeObtenido.rareza})!`);
             }, 3000);
+        }
+
+        function comprarCreditos(cantidad) {
+            saldo += cantidad;
+            document.getElementById('user-balance').innerText = "$" + saldo;
+            alert(`¡Has comprado ${cantidad} créditos!`);
+        }
+
+        function comprarCofre() {
+            if (saldo < 100) {
+                alert("Saldo insuficiente para el cofre.");
+                return;
+            }
+
+            if (typeof personajesInventario === 'undefined' || personajesInventario.length === 0) {
+                alert("Error: No se encuentra personajes.js");
+                return;
+            }
+
+            saldo -= 100;
+            document.getElementById('user-balance').innerText = "$" + saldo;
+
+            const randomIndex = Math.floor(Math.random() * personajesInventario.length);
+            const personajeObtenido = personajesInventario[randomIndex];
+
+            inventarioUsuario.push(personajeObtenido);
+            localStorage.setItem('inventario_usuario', JSON.stringify(inventarioUsuario));
+
+            alert(`¡Cofre abierto! Obtuviste a: ${personajeObtenido.id} (${personajeObtenido.rareza})`);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             renderInventario();
-            renderTienda();
         });
     </script>
 </body>
