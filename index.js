@@ -174,19 +174,26 @@ app.post('/api/apostar', async (req, res) => {
     }
 });
 
-// COMPRAR PERSONAJE EN TIENDA
+// COMPRAR PERSONAJE EN TIENDA (ACTUALIZADO CON ID Y PRECIOS)
 app.post('/api/comprar', async (req, res) => {
     try {
-        const { telegramUser, personajeIndex } = req.body;
+        const { telegramUser, personajeId } = req.body;
         let user = await User.findOne({ telegramUser });
-        const precio = 100;
+
+        const personajes = JSON.parse(fs.readFileSync(path.join(__dirname, 'personajes.json'), 'utf8'));
+        // Buscar el personaje por su ID en lugar de index
+        const personajeElegido = personajes.find(p => p.id === personajeId);
+
+        if (!personajeElegido) {
+            return res.status(404).json({ error: "Personaje no encontrado" });
+        }
+
+        // Leer el precio del JSON (si no tiene, cuesta 100 por defecto)
+        const precio = personajeElegido.precio || 100;
 
         if (!user || user.saldo < precio) {
             return res.status(400).json({ error: "Saldo insuficiente" });
         }
-
-        const personajes = JSON.parse(fs.readFileSync(path.join(__dirname, 'personajes.json'), 'utf8'));
-        const personajeElegido = personajes[personajeIndex];
 
         user.saldo -= precio;
         user.inventario.push(personajeElegido);
