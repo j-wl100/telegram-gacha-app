@@ -3,50 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPYOT.BOT</title>
+    <title>SPYOT.BOT SYSTEM</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: monospace, sans-serif; }
         body { background-color: #000; color: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* PANTALLA DE REGISTRO */
+        #modal-registro { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .registro-box { border: 1px solid #fff; padding: 20px; width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; background: #050505; }
+        .registro-box input { background: #000; border: 1px solid #fff; color: #fff; padding: 10px; font-family: monospace; font-size: 13px; outline: none; width: 100%; }
+        .registro-box button { background: #fff; color: #000; border: none; padding: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+
+        /* HEADER Y LUPA */
         .header-action { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid #fff; background: #000; gap: 10px; }
-        .balance-box { border: 1px solid #fff; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px; background: #000; white-space: nowrap; }
+        .balance-box { border: 1px solid #fff; padding: 8px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; background: #000; white-space: nowrap; }
         .search-container { display: flex; align-items: center; border: 1px solid #fff; border-radius: 20px; padding: 7px 15px; background: #000; flex: 1; }
         .search-input { background: transparent; border: none; color: #fff; font-size: 13px; width: 100%; outline: none; font-family: monospace; }
-        .search-input::placeholder { color: #777; }
+        .search-input::placeholder { color: #666; }
+
         .main-content { flex: 1; overflow-y: auto; padding: 15px; display: none; }
         .main-content.active { display: block; }
+        
+        /* TARJETAS FORMATO IMAGEN 2 */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 20px; }
         .card { border: 1px solid #fff; padding: 8px; background: #000; display: flex; flex-direction: column; gap: 6px; }
-        .card-img { width: 100%; height: 120px; border: 1px solid #fff; background: #111; background-size: cover; background-position: center; }
-        .card-text { font-size: 11px; line-height: 1.4; }
-        .roulette-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 30px; text-align: center; }
+        .card-img { width: 100%; height: 110px; border: 1px solid #fff; background: #111; background-size: cover; background-position: center; }
+        .card-text { font-size: 10px; line-height: 1.4; }
+        .btn-card-action { border: 1px solid #fff; background: #000; color: #fff; padding: 6px; font-size: 10px; cursor: pointer; text-align: center; font-weight: bold; width: 100%; margin-top: 4px; }
+        .btn-card-action:hover { background: #fff; color: #000; }
+
+        /* RULETA */
+        .roulette-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; text-align: center; }
         .wheel-wrapper { position: relative; display: flex; justify-content: center; align-items: center; }
         .roulette-pointer { position: absolute; top: -15px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 16px solid #fff; z-index: 10; }
-        .roulette-wheel { width: 190px; height: 190px; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #000; transition: transform 3s cubic-bezier(0.15, 0.9, 0.2, 1); }
-        .roulette-inner-text { font-size: 13px; font-weight: bold; letter-spacing: 1px; }
-        .btn-action { border: 1px solid #fff; background: #000; color: #fff; padding: 12px 25px; font-size: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; width: 100%; max-width: 260px; }
+        .roulette-wheel { width: 170px; height: 170px; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #000; transition: transform 3s cubic-bezier(0.15, 0.9, 0.2, 1); }
+        .btn-action { border: 1px solid #fff; background: #000; color: #fff; padding: 12px 20px; font-size: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; width: 100%; max-width: 240px; }
         .btn-action:hover { background: #fff; color: #000; }
-        .shop-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px; }
-        .shop-item { border: 1px solid #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #000; }
-        .shop-item small { color: #888; font-size: 10px; }
-        .shop-btn { border: 1px solid #fff; background: #000; color: #fff; padding: 8px 15px; font-size: 11px; cursor: pointer; font-weight: bold; font-family: monospace; white-space: nowrap; }
-        .shop-btn:hover { background: #fff; color: #000; }
+
+        /* NAVEGACIÓN */
         .nav-bar { display: flex; border-top: 1px solid #fff; background: #000; }
         .nav-btn { flex: 1; padding: 14px 0; text-align: center; background: none; border: none; color: #fff; font-size: 11px; cursor: pointer; text-transform: uppercase; border-right: 1px solid #fff; font-family: monospace; }
         .nav-btn:last-child { border-right: none; }
         .nav-btn.active { background: #fff; color: #000; font-weight: bold; }
+
+        /* PANEL ADMIN */
+        .admin-panel { padding: 10px; background: #111; border: 1px solid red; margin-bottom: 15px; }
+        .admin-user-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #444; padding: 8px 0; font-size: 11px; }
     </style>
 </head>
 <body>
 
+    <!-- PANTALLA DE REGISTRO INICIAL -->
+    <div id="modal-registro">
+        <div class="registro-box">
+            <h3 style="font-size: 14px; text-align: center;">REGISTRO DE USUARIO</h3>
+            <p style="font-size: 10px; color: #888; text-align: center;">Ingresa tus datos de la ficha de entrada</p>
+            <input type="text" id="reg-telegram" placeholder="User de Telegram (ej: usuario123)">
+            <input type="text" id="reg-nombre" placeholder="Nombre completo">
+            <input type="number" id="reg-edad" placeholder="Edad">
+            <button onclick="registrarUsuario()">REGISTRARME</button>
+        </div>
+    </div>
+
     <div class="header-action">
-        <div class="balance-box" id="user-balance">$150</div>
+        <div class="balance-box" id="user-balance">$100</div>
         <div class="search-container">
-            <input type="text" class="search-input" id="search-input" placeholder="BUSCAR PERSONAJES" oninput="filtrarInventario()">
+            <input type="text" class="search-input" id="search-input" placeholder="BUSCAR PERSONAJES / CONTRASEÑA ADMIN" oninput="procesarBusqueda()">
         </div>
     </div>
 
     <!-- INVENTARIO -->
     <div id="section-inventario" class="main-content active">
+        <div id="admin-container"></div>
         <div class="grid" id="inventory-grid"></div>
     </div>
 
@@ -56,86 +84,79 @@
             <div class="wheel-wrapper">
                 <div class="roulette-pointer"></div>
                 <div class="roulette-wheel" id="wheel">
-                    <div class="roulette-inner-text">[ GACHA ]</div>
+                    <div style="font-size: 12px; font-weight: bold;">[ GACHA ]</div>
                 </div>
             </div>
-            <button class="btn-action" id="spin-btn" onclick="girarRuleta()">EJECUTAR TIRADA ($50)</button>
+            <button class="btn-action" id="spin-btn" onclick="girarRuleta()">GIRAR RULETA (30 CRÉDITOS)</button>
+            <button class="btn-action" onclick="minarCreditos()">MINAR / GANAR 50 CRÉDITOS</button>
         </div>
     </div>
 
     <!-- TIENDA -->
     <div id="section-tienda" class="main-content">
-        <div class="shop-list" id="shop-container">
-            <div class="shop-item">
-                <div>
-                    <strong>Pack x100 Créditos</strong><br>
-                    <small>Recarga estándar</small>
-                </div>
-                <button class="shop-btn" onclick="comprarCreditos(100)">COMPRAR</button>
-            </div>
-            <!-- Los personajes se cargarán aquí automáticamente con el mismo formato -->
-        </div>
+        <div class="grid" id="shop-grid"></div>
     </div>
 
     <div class="nav-bar">
         <button class="nav-btn active" onclick="cambiarSeccion('inventario', this)">INVENTARIO</button>
-        <button class="nav-btn" onclick="cambiarSeccion('aleatorio', this)">ALEATORIO</button>
+        <button class="nav-btn" onclick="cambiarSeccion('aleatorio', this)">RULETA</button>
         <button class="nav-btn" onclick="cambiarSeccion('tienda', this)">TIENDA</button>
     </div>
 
     <script>
-        const currentUserId = "usuario_prueba_1"; 
-        let saldo = 150;
-        let inventarioUsuario = [];
+        const PASSWORD_ADMIN = "admin123"; // Cambia tu contraseña de admin aquí
+        let usuarioActual = localStorage.getItem("telegramUser") || null;
+        let datosUsuario = {};
         let listaPersonajesGlobal = [];
 
-        async function inicializarApp() {
+        async function inicializar() {
+            if (!usuarioActual) {
+                document.getElementById('modal-registro').style.display = 'flex';
+                return;
+            }
+            document.getElementById('modal-registro').style.display = 'none';
+
             try {
-                const resUser = await fetch(`/api/usuario/${currentUserId}`);
-                const dataUser = await resUser.json();
-                saldo = dataUser.saldo ?? 150;
-                inventarioUsuario = dataUser.inventario || [];
-                document.getElementById('user-balance').innerText = "$" + saldo;
-                renderInventario();
+                const res = await fetch(`/api/usuario/${usuarioActual}`);
+                const data = await res.json();
+                if (data.error) {
+                    localStorage.removeItem("telegramUser");
+                    location.reload();
+                    return;
+                }
+                datosUsuario = data;
+                document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
 
                 const resP = await fetch('/personajes.json');
                 listaPersonajesGlobal = await resP.json();
-                cargarTiendaPersonajes();
+
+                renderInventario();
+                renderTienda();
             } catch (e) {
-                console.error("Error al inicializar:", e);
+                console.error("Error al conectar con el servidor", e);
             }
         }
 
-        // Lupa / Buscador en tiempo real
-        function filtrarInventario() {
-            const texto = document.getElementById('search-input').value.toLowerCase();
-            const grid = document.getElementById('inventory-grid');
+        async function registrarUsuario() {
+            const telegramUser = document.getElementById('reg-telegram').value.trim().replace('@','');
+            const nombre = document.getElementById('reg-nombre').value.trim();
+            const edad = document.getElementById('reg-edad').value.trim();
 
-            const filtrados = inventarioUsuario.filter(p => 
-                p.id.toLowerCase().includes(texto) || 
-                p.categoria.toLowerCase().includes(texto) || 
-                p.rareza.toLowerCase().includes(texto)
-            );
-
-            if (filtrados.length === 0) {
-                grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #777; padding: 30px; font-size: 12px;">SIN RESULTADOS</div>`;
+            if (!telegramUser || !nombre || !edad) {
+                alert("Completa todos los campos obligatorios.");
                 return;
             }
 
-            grid.innerHTML = filtrados.map(p => `
-                <div class="card">
-                    <div class="card-img" style="background-image: url('${p.imagen}');"></div>
-                    <div class="card-text">
-                        ID / ${p.id}<br>
-                        RAREZA : ${p.rareza}<br>
-                        #${p.categoria}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderInventario() {
-            filtrarInventario();
+            const res = await fetch('/api/registrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegramUser, nombre, edad })
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem("telegramUser", telegramUser);
+                location.reload();
+            }
         }
 
         function cambiarSeccion(seccion, elemento) {
@@ -143,103 +164,184 @@
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             document.getElementById('section-' + seccion).classList.add('active');
             elemento.classList.add('active');
-            if(seccion === 'inventario') renderInventario();
+        }
+
+        // LUPA / BUSCADOR Y PANEL ADMIN SECRETO
+        async function procesarBusqueda() {
+            const texto = document.getElementById('search-input').value.trim();
+            const adminContainer = document.getElementById('admin-container');
+
+            if (texto === PASSWORD_ADMIN) {
+                adminContainer.innerHTML = `<div class="admin-panel"><strong>PANEL ADMIN CARGANDO...</strong></div>`;
+                const res = await fetch('/api/admin/usuarios');
+                const users = await res.json();
+                
+                adminContainer.innerHTML = `
+                    <div class="admin-panel">
+                        <p style="font-weight: bold; margin-bottom: 8px; color: yellow;">PANEL DE CONTROL DE USUARIOS</p>
+                        ${users.map(u => `
+                            <div class="admin-user-row">
+                                <span>@${u.telegramUser} (${u.nombre}, ${u.edad} años) - $${u.saldo}</span>
+                                <button onclick="eliminarUsuario('${u.telegramUser}')" style="background:red; color:#fff; border:none; padding:4px 8px; cursor:pointer;">BORRAR</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                return;
+            } else {
+                adminContainer.innerHTML = "";
+            }
+
+            // Búsqueda normal en inventario
+            const grid = document.getElementById('inventory-grid');
+            const filtrados = datosUsuario.inventario.filter(p => 
+                p.id.toLowerCase().includes(texto.toLowerCase()) || 
+                p.categoria.toLowerCase().includes(texto.toLowerCase()) || 
+                p.rareza.toLowerCase().includes(texto.toLowerCase())
+            );
+
+            if (filtrados.length === 0) {
+                grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #777; padding: 20px; font-size: 11px;">SIN RESULTADOS EN INVENTARIO</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtrados.map((p, idx) => `
+                <div class="card">
+                    <div class="card-img" style="background-image: url('${p.imagen}');"></div>
+                    <div class="card-text">
+                        ID / ${p.id}<br>
+                        RAREZA : ${p.rareza}<br>
+                        #${p.categoria}
+                    </div>
+                    <button class="btn-card-action" onclick='enviarATelegram(${JSON.stringify(p)})'>ELEGIR / ENVIAR</button>
+                </div>
+            `).join('');
+        }
+
+        function renderInventario() {
+            const grid = document.getElementById('inventory-grid');
+            if (!datosUsuario.inventario || datosUsuario.inventario.length === 0) {
+                grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #777; padding: 30px; font-size: 11px;">INVENTARIO VACÍO</div>`;
+                return;
+            }
+
+            grid.innerHTML = datosUsuario.inventario.map(p => `
+                <div class="card">
+                    <div class="card-img" style="background-image: url('${p.imagen}');"></div>
+                    <div class="card-text">
+                        ID / ${p.id}<br>
+                        RAREZA : ${p.rareza}<br>
+                        #${p.categoria}
+                    </div>
+                    <button class="btn-card-action" onclick='enviarATelegram(${JSON.stringify(p)})'>ELEGIR / ENVIAR</button>
+                </div>
+            `).join('');
+        }
+
+        function renderTienda() {
+            const shopGrid = document.getElementById('shop-grid');
+            shopGrid.innerHTML = listaPersonajesGlobal.map((p, index) => `
+                <div class="card">
+                    <div class="card-img" style="background-image: url('${p.imagen}');"></div>
+                    <div class="card-text">
+                        ID / ${p.id}<br>
+                        RAREZA : ${p.rareza}<br>
+                        #${p.categoria}
+                    </div>
+                    <button class="btn-card-action" onclick="comprarPersonaje(${index})">COMPRAR ($100)</button>
+                </div>
+            `).join('');
+        }
+
+        async function comprarPersonaje(index) {
+            const res = await fetch('/api/comprar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegramUser: usuarioActual, personajeIndex: index })
+            });
+            const data = await res.json();
+            if (data.success) {
+                datosUsuario.saldo = data.nuevoSaldo;
+                datosUsuario.inventario.push(data.personaje);
+                document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
+                renderInventario();
+                alert(`¡Has comprado a ${data.personaje.id}!`);
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function minarCreditos() {
+            const res = await fetch('/api/minar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegramUser: usuarioActual })
+            });
+            const data = await res.json();
+            if (data.success) {
+                datosUsuario.saldo = data.nuevoSaldo;
+                document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
+                alert("¡Has ganado 50 créditos!");
+            }
         }
 
         let girando = false;
         async function girarRuleta() {
             if (girando) return;
-            if (saldo < 50) {
-                alert("Saldo insuficiente.");
+            if (datosUsuario.saldo < 30) {
+                alert("No tienes suficientes créditos (Necesitas 30).");
                 return;
             }
 
             girando = true;
             const wheel = document.getElementById('wheel');
-            const btn = document.getElementById('spin-btn');
-            btn.disabled = true;
-
             const randomDeg = Math.floor(1800 + Math.random() * 1080);
             wheel.style.transform = `rotate(${randomDeg}deg)`;
 
-            try {
-                const res = await fetch('/api/ruleta', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: currentUserId })
-                });
-                const data = await res.json();
-
-                setTimeout(() => {
-                    girando = false;
-                    btn.disabled = false;
-                    if (data.success) {
-                        saldo = data.nuevoSaldo;
-                        inventarioUsuario.push(data.personaje);
-                        document.getElementById('user-balance').innerText = "$" + saldo;
-                        alert(`¡Has obtenido a: ${data.personaje.id} (${data.personaje.rareza})!`);
-                        renderInventario();
-                    } else {
-                        alert(data.error || "Error al girar");
-                    }
-                }, 3000);
-            } catch (err) {
-                girando = false;
-                btn.disabled = false;
-                alert("Error de conexión con el servidor.");
-            }
-        }
-
-        function cargarTiendaPersonajes() {
-            const shopContainer = document.getElementById('shop-container');
-            listaPersonajesGlobal.forEach((personaje, index) => {
-                shopContainer.innerHTML += `
-                    <div class="shop-item">
-                        <div>
-                            <strong>${personaje.id}</strong><br>
-                            <small>Rareza: ${personaje.rareza} | #${personaje.categoria}</small>
-                        </div>
-                        <button class="shop-btn" onclick="comprarPersonajeDirecto(${index})">COMPRAR ($150)</button>
-                    </div>
-                `;
+            const res = await fetch('/api/ruleta', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegramUser: usuarioActual })
             });
-        }
+            const data = await res.json();
 
-        async function comprarPersonajeDirecto(index) {
-            if (saldo < 150) {
-                alert("Saldo insuficiente.");
-                return;
-            }
-
-            try {
-                const res = await fetch('/api/comprar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: currentUserId, personajeIndex: index })
-                });
-                const data = await res.json();
-
+            setTimeout(() => {
+                girando = false;
                 if (data.success) {
-                    saldo = data.nuevoSaldo;
-                    inventarioUsuario.push(data.personaje);
-                    document.getElementById('user-balance').innerText = "$" + saldo;
-                    alert(`¡Has comprado a ${data.personaje.id}! Ya está en tu inventario.`);
+                    datosUsuario.saldo = data.nuevoSaldo;
+                    datosUsuario.inventario.push(data.personaje);
+                    document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
                     renderInventario();
+                    alert(`¡Ganaste en la ruleta a: ${data.personaje.id}!`);
                 } else {
-                    alert(data.error || "Error en la compra");
+                    alert(data.error);
                 }
-            } catch (err) {
-                alert("Error de conexión con el servidor.");
+            }, 3000);
+        }
+
+        async function enviarATelegram(personaje) {
+            const res = await fetch('/api/enviar-telegram', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegramUser: usuarioActual, personaje })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert("¡Personaje enviado al chat de Telegram con éxito!");
+            } else {
+                alert("Error al enviar (configura tu Token del Bot en el servidor).");
             }
         }
 
-        function comprarCreditos(cantidad) {
-            saldo += cantidad;
-            document.getElementById('user-balance').innerText = "$" + saldo;
-            alert(`¡Has recargado ${cantidad} créditos!`);
+        async function eliminarUsuario(telegramUser) {
+            if (confirm(`¿Seguro que deseas eliminar la cuenta de @${telegramUser}?`)) {
+                await fetch(`/api/admin/usuario/${telegramUser}`, { method: 'DELETE' });
+                alert("Usuario eliminado de la base de datos.");
+                procesarBusqueda(); // Actualizar panel
+            }
         }
 
-        window.addEventListener('DOMContentLoaded', inicializarApp);
+        window.addEventListener('DOMContentLoaded', inicializar);
     </script>
 </body>
 </html>
