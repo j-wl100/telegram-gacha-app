@@ -1,14 +1,14 @@
-const personajesInventario = [
+[
     {
-        id: "Seo-moon-jo",
-        rareza: "UR",
-        categoria: "K-drama",
-        imagen: "https://raw.githubusercontent.com/j-wl100/Bot.pruebas/a470b91d2558fe61f7f15e4ab45111c07044ad6b/16c2369611140eb830345ff2a90cc4e2%20(1).jpg"
+        "id": "Seo-moon-jo",
+        "rareza": "UR",
+        "categoria": "K-drama",
+        "imagen": "https://raw.githubusercontent.com/j-wl100/Bot.pruebas/a470b91d2558fe61f7f15e4ab45111c07044ad6b/16c2369611140eb830345ff2a90cc4e2%20(1).jpg"
     },
     {
-        id: "Jong-woo",
-        rareza: "SRR",
-        categoria: "K-drama",
-        imagen: "https://raw.githubusercontent.com/j-wl100/telegram-gacha-app/7d24779914cc805c314dd4bbe5e3a9340f935bcc/f37b791bb66263acef9459fad06d3d13.jpg"
+        "id": "Jong-woo",
+        "rareza": "SRR",
+        "categoria": "K-drama",
+        "imagen": "https://raw.githubusercontent.com/j-wl100/telegram-gacha-app/7d24779914cc805c314dd4bbe5e3a9340f935bcc/f37b791bb66263acef9459fad06d3d13.jpg"
     }
-];
+]
