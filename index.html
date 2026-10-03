@@ -84,6 +84,8 @@
             height: 120px;
             border: 1px solid #ffffff;
             background: #111;
+            background-size: cover;
+            background-position: center;
         }
 
         .card-text {
@@ -197,39 +199,8 @@
 
     <!-- SECCIÓN 1: INVENTARIO -->
     <div id="section-inventario" class="main-content active">
-        <div class="grid">
-            <div class="card">
-                <div class="card-img"></div>
-                <div class="card-text">
-                    ID / here<br>
-                    RAREZA : here<br>
-                    #CATEGORIA
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-img"></div>
-                <div class="card-text">
-                    ID / here<br>
-                    RAREZA : here<br>
-                    #CATEGORIA
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-img"></div>
-                <div class="card-text">
-                    ID / here<br>
-                    RAREZA : here<br>
-                    #CATEGORIA
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-img"></div>
-                <div class="card-text">
-                    ID / here<br>
-                    RAREZA : here<br>
-                    #CATEGORIA
-                </div>
-            </div>
+        <div class="grid" id="inventory-grid">
+            <!-- Las tarjetas se cargarán dinámicamente desde personajes.js -->
         </div>
     </div>
 
@@ -271,14 +242,31 @@
         <button class="nav-btn" onclick="cambiarSeccion('tienda', this)">Tienda</button>
     </div>
 
+    <!-- IMPORTANTE: Archivo externo de personajes -->
+    <script src="personajes.js"></script>
+
     <script>
+        // Cargar inventario al iniciar
+        window.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('inventory-grid');
+            if (typeof personajesInventario !== 'undefined') {
+                grid.innerHTML = personajesInventario.map(p => `
+                    <div class="card">
+                        <div class="card-img" style="background-image: url('${p.imagen}');"></div>
+                        <div class="card-text">
+                            ID / ${p.id}<br>
+                            RAREZA : ${p.rareza}<br>
+                            #${p.categoria}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        });
+
         function cambiarSeccion(seccion, elemento) {
-            // Ocultar todas las secciones
             document.querySelectorAll('.main-content').forEach(el => el.classList.remove('active'));
-            // Quitar clase activa de los botones
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
 
-            // Mostrar la seleccionada
             document.getElementById('section-' + seccion).classList.add('active');
             elemento.classList.add('active');
         }
