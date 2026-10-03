@@ -174,6 +174,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            padding-bottom: 20px;
         }
 
         .shop-item {
@@ -199,6 +200,7 @@
             cursor: pointer;
             font-weight: bold;
             font-family: monospace;
+            white-space: nowrap;
         }
 
         .shop-btn:hover {
@@ -246,12 +248,12 @@
         </div>
     </div>
 
-    <!-- INVENTARIO -->
+    <!-- SECCIÓN 1: INVENTARIO -->
     <div id="section-inventario" class="main-content active">
         <div class="grid" id="inventory-grid"></div>
     </div>
 
-    <!-- ALEATORIO (RULETA) -->
+    <!-- SECCIÓN 2: ALEATORIO (RULETA) -->
     <div id="section-aleatorio" class="main-content">
         <div class="roulette-container">
             <div class="wheel-wrapper">
@@ -264,9 +266,10 @@
         </div>
     </div>
 
-    <!-- TIENDA -->
+    <!-- SECCIÓN 3: TIENDA -->
     <div id="section-tienda" class="main-content">
-        <div class="shop-list">
+        <div class="shop-list" id="shop-container">
+            <!-- Créditos fijos -->
             <div class="shop-item">
                 <div>
                     <strong>Pack x100 Créditos</strong><br>
@@ -274,13 +277,7 @@
                 </div>
                 <button class="shop-btn" onclick="comprarCreditos(100)">COMPRAR</button>
             </div>
-            <div class="shop-item">
-                <div>
-                    <strong>Cofre de Personaje</strong><br>
-                    <small>Obtén un personaje aleatorio</small>
-                </div>
-                <button class="shop-btn" onclick="comprarCofre()">COMPRAR ($100)</button>
-            </div>
+            <!-- Los personajes de personajes.js se cargarán aquí automáticamente -->
         </div>
     </div>
 
@@ -290,7 +287,7 @@
         <button class="nav-btn" onclick="cambiarSeccion('tienda', this)">TIENDA</button>
     </div>
 
-    <!-- CARGA TU ARCHIVO JS REAL -->
+    <!-- CARGA TU ARCHIVO REAL -->
     <script src="personajes.js"></script>
 
     <script>
@@ -389,31 +386,50 @@
             alert(`¡Has comprado ${cantidad} créditos!`);
         }
 
-        function comprarCofre() {
-            if (saldo < 100) {
-                alert("Saldo insuficiente para el cofre.");
+        function cargarTiendaPersonajes() {
+            const shopContainer = document.getElementById('shop-container');
+            if (typeof personajesInventario === 'undefined') return;
+
+            personajesInventario.forEach((personaje, index) => {
+                const itemHTML = `
+                    <div class="shop-item">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; background-image: url('${personaje.imagen}'); background-size: cover; background-position: center; border: 1px solid #fff;"></div>
+                            <div>
+                                <strong>${personaje.id}</strong><br>
+                                <small>Rareza: ${personaje.rareza} | #${personaje.categoria}</small>
+                            </div>
+                        </div>
+                        <button class="shop-btn" onclick="comprarPersonajeDirecto(${index})">COMPRAR ($150)</button>
+                    </div>
+                `;
+                shopContainer.innerHTML += itemHTML;
+            });
+        }
+
+        function comprarPersonajeDirecto(index) {
+            const precio = 150;
+            if (saldo < precio) {
+                alert("Saldo insuficiente.");
                 return;
             }
 
-            if (typeof personajesInventario === 'undefined' || personajesInventario.length === 0) {
-                alert("Error: No se encuentra personajes.js");
-                return;
-            }
+            if (typeof personajesInventario === 'undefined') return;
 
-            saldo -= 100;
+            const personajeElegido = personajesInventario[index];
+
+            saldo -= precio;
             document.getElementById('user-balance').innerText = "$" + saldo;
 
-            const randomIndex = Math.floor(Math.random() * personajesInventario.length);
-            const personajeObtenido = personajesInventario[randomIndex];
-
-            inventarioUsuario.push(personajeObtenido);
+            inventarioUsuario.push(personajeElegido);
             localStorage.setItem('inventario_usuario', JSON.stringify(inventarioUsuario));
 
-            alert(`¡Cofre abierto! Obtuviste a: ${personajeObtenido.id} (${personajeObtenido.rareza})`);
+            alert(`¡Has comprado exitosamente a ${personajeElegido.id}! Ya está en tu inventario.`);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             renderInventario();
+            cargarTiendaPersonajes();
         });
     </script>
 </body>
