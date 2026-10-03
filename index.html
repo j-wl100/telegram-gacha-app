@@ -245,7 +245,7 @@
 </head>
 <body>
 
-    <!-- FILA DE DINERO Y BÚSQUEDA (SIN ICONOS EXTRAÑOS) -->
+    <!-- FILA DE DINERO Y BÚSQUEDA -->
     <div class="header-action">
         <div class="balance-box" id="user-balance">$150</div>
         <div class="search-container">
@@ -253,14 +253,12 @@
         </div>
     </div>
 
-    <!-- SECCIÓN 1: INVENTARIO -->
+    <!-- SECCIÓN 1: INVENTARIO (Muestra solo los personajes obtenidos) -->
     <div id="section-inventario" class="main-content active">
-        <div class="grid" id="inventory-grid">
-            <!-- Se carga desde personajes.js -->
-        </div>
+        <div class="grid" id="inventory-grid"></div>
     </div>
 
-    <!-- SECCIÓN 2: ALEATORIO -->
+    <!-- SECCIÓN 2: ALEATORIO (RULETA GACHA) -->
     <div id="section-aleatorio" class="main-content">
         <div class="roulette-container">
             <div class="wheel-wrapper">
@@ -281,14 +279,14 @@
                     <strong>Pack x100 Créditos</strong><br>
                     <small>Recarga estándar</small>
                 </div>
-                <button class="shop-btn" onclick="comprar(100)">COMPRAR</button>
+                <button class="shop-btn" onclick="comprarCreditos(100)">COMPRAR</button>
             </div>
             <div class="shop-item">
                 <div>
                     <strong>Cofre Legendario</strong><br>
                     <small>Garantiza SSR</small>
                 </div>
-                <button class="shop-btn" onclick="comprar(0)">COMPRAR</button>
+                <button class="shop-btn" onclick="comprarCofre()">COMPRAR</button>
             </div>
         </div>
     </div>
@@ -300,25 +298,23 @@
         <button class="nav-btn" onclick="cambiarSeccion('tienda', this)">TIENDA</button>
     </div>
 
-    <!-- CONEXIÓN DIRECTA A TU ARCHIVO personajes.js -->
+    <!-- CARGA EL ARCHIVO DE PERSONAJES -->
     <script src="personajes.js"></script>
 
     <script>
-        if (typeof personajesInventario === 'undefined') {
-            var personajesInventario = [];
-        }
-
         let saldo = 150;
+        // Inventario guardado en el navegador para que no se borre al cambiar de pestaña
+        let inventarioUsuario = JSON.parse(localStorage.getItem('inventario_usuario')) || [];
 
         function renderInventario(filtro = "") {
             const grid = document.getElementById('inventory-grid');
             
-            if (!personajesInventario || personajesInventario.length === 0) {
-                grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #777; padding: 30px; font-size: 12px;">NO HAY DATOS EN personajes.js</div>`;
+            if (!inventarioUsuario || inventarioUsuario.length === 0) {
+                grid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #777; padding: 40px; font-size: 12px;">NO TIENES PERSONAJES EN TU INVENTARIO.<br>¡CONSIGUE ALGUNOS EN LA RULETA!</div>`;
                 return;
             }
 
-            const filtrados = personajesInventario.filter(p => 
+            const filtrados = inventarioUsuario.filter(p => 
                 (p.id && p.id.toLowerCase().includes(filtro.toLowerCase())) || 
                 (p.categoria && p.categoria.toLowerCase().includes(filtro.toLowerCase())) ||
                 (p.rareza && p.rareza.toLowerCase().includes(filtro.toLowerCase()))
@@ -352,6 +348,10 @@
 
             document.getElementById('section-' + seccion).classList.add('active');
             elemento.classList.add('active');
+
+            if(seccion === 'inventario') {
+                renderInventario();
+            }
         }
 
         let girando = false;
@@ -359,6 +359,11 @@
             if (girando) return;
             if (saldo < 50) {
                 alert("Saldo insuficiente.");
+                return;
+            }
+
+            if (typeof personajesDisponibles === 'undefined' || personajesDisponibles.length === 0) {
+                alert("Error: No se encuentra la lista en personajes.js");
                 return;
             }
 
@@ -376,16 +381,39 @@
             setTimeout(() => {
                 girando = false;
                 btn.disabled = false;
+
+                // Seleccionar personaje aleatorio de personajes.js
+                const randomIndex = Math.floor(Math.random() * personajesDisponibles.length);
+                const personajeObtenido = personajesDisponibles[randomIndex];
+
+                // Agregar al inventario
+                inventarioUsuario.push(personajeObtenido);
+                localStorage.setItem('inventario_usuario', JSON.stringify(inventarioUsuario));
+
+                alert(`¡Has obtenido a: ${personajeObtenido.id} (${personajeObtenido.rareza})!`);
             }, 3000);
         }
 
-        function comprar(creditos) {
-            if (creditos > 0) {
-                saldo += creditos;
-                document.getElementById('user-balance').innerText = "$" + saldo;
-            } else {
-                alert("¡Cofre adquirido!");
+        function comprarCreditos(cantidad) {
+            saldo += cantidad;
+            document.getElementById('user-balance').innerText = "$" + saldo;
+            alert(`¡Has comprado ${cantidad} créditos!`);
+        }
+
+        function comprarCofre() {
+            if (saldo < 100) {
+                alert("No tienes suficientes créditos para el cofre.");
+                return;
             }
+            saldo -= 100;
+            document.getElementById('user-balance').innerText = "$" + saldo;
+            
+            if (typeof personajesDisponibles === 'undefined' || personajesDisponibles.length === 0) return;
+            const personajeObtenido = personajesDisponibles[Math.floor(Math.random() * personajesDisponibles.length)];
+            
+            inventarioUsuario.push(personajeObtenido);
+            localStorage.setItem('inventario_usuario', JSON.stringify(inventarioUsuario));
+            alert(`¡Cofre abierto! Obtuviste a: ${personajeObtenido.id}`);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
