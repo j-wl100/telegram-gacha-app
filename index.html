@@ -24,7 +24,7 @@
         .main-content { flex: 1; overflow-y: auto; padding: 15px; display: none; }
         .main-content.active { display: block; }
         
-        /* TARJETAS FORMATO IMAGEN 2 */
+        /* TARJETAS */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 20px; }
         .card { border: 1px solid #fff; padding: 8px; background: #000; display: flex; flex-direction: column; gap: 6px; }
         .card-img { width: 100%; height: 110px; border: 1px solid #fff; background: #111; background-size: cover; background-position: center; }
@@ -32,13 +32,20 @@
         .btn-card-action { border: 1px solid #fff; background: #000; color: #fff; padding: 6px; font-size: 10px; cursor: pointer; text-align: center; font-weight: bold; width: 100%; margin-top: 4px; }
         .btn-card-action:hover { background: #fff; color: #000; }
 
-        /* RULETA */
-        .roulette-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; text-align: center; }
-        .wheel-wrapper { position: relative; display: flex; justify-content: center; align-items: center; }
-        .roulette-pointer { position: absolute; top: -15px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 16px solid #fff; z-index: 10; }
-        .roulette-wheel { width: 170px; height: 170px; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #000; transition: transform 3s cubic-bezier(0.15, 0.9, 0.2, 1); }
-        .btn-action { border: 1px solid #fff; background: #000; color: #fff; padding: 12px 20px; font-size: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; width: 100%; max-width: 240px; }
+        /* ZONA DE JUEGO */
+        .game-zone { display: flex; flex-direction: column; gap: 15px; padding-bottom: 20px; }
+        .wheel-container { display: flex; flex-direction: column; align-items: center; border: 1px solid #fff; padding: 15px; gap: 10px; background: #050505; }
+        .roulette-wrapper { position: relative; display: flex; justify-content: center; align-items: center; }
+        .roulette-wheel { width: 120px; height: 120px; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #000; transition: transform 3s cubic-bezier(0.15, 0.9, 0.2, 1); font-size: 11px; }
+        
+        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-action { border: 1px solid #fff; background: #000; color: #fff; padding: 10px; font-size: 11px; cursor: pointer; text-transform: uppercase; font-weight: bold; text-align: center; }
         .btn-action:hover { background: #fff; color: #000; }
+
+        .console-box { border: 1px dashed #777; background: #050505; padding: 10px; font-size: 11px; min-height: 50px; color: #00ff66; margin-top: 5px; word-break: break-all; }
+
+        .bet-box { border: 1px solid #fff; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #050505; }
+        .bet-box input { background: #000; border: 1px solid #fff; color: #fff; padding: 8px; font-family: monospace; font-size: 11px; outline: none; width: 100%; }
 
         /* NAVEGACIÓN */
         .nav-bar { display: flex; border-top: 1px solid #fff; background: #000; }
@@ -53,7 +60,7 @@
 </head>
 <body>
 
-    <!-- PANTALLA DE REGISTRO INICIAL -->
+    <!-- REGISTRO -->
     <div id="modal-registro">
         <div class="registro-box">
             <h3 style="font-size: 14px; text-align: center;">REGISTRO DE USUARIO</h3>
@@ -78,17 +85,36 @@
         <div class="grid" id="inventory-grid"></div>
     </div>
 
-    <!-- RULETA -->
-    <div id="section-aleatorio" class="main-content">
-        <div class="roulette-container">
-            <div class="wheel-wrapper">
-                <div class="roulette-pointer"></div>
-                <div class="roulette-wheel" id="wheel">
-                    <div style="font-size: 12px; font-weight: bold;">[ GACHA ]</div>
+    <!-- ZONA DE JUEGO (RULETA Y ECONOMÍA) -->
+    <div id="section-juego" class="main-content">
+        <div class="game-zone">
+            <!-- GACHA / RULETA -->
+            <div class="wheel-container">
+                <span style="font-size: 11px; font-weight: bold;">[ RULETA GACHA DE PERSONAJES ]</span>
+                <div class="roulette-wrapper">
+                    <div class="roulette-wheel" id="wheel">[ GACHA ]</div>
                 </div>
+                <button class="btn-action" style="width: 100%;" onclick="girarRuleta()">GIRAR RULETA (-30 CRÉDITOS)</button>
             </div>
-            <button class="btn-action" id="spin-btn" onclick="girarRuleta()">GIRAR RULETA (30 CRÉDITOS)</button>
-            <button class="btn-action" onclick="minarCreditos()">MINAR / GANAR 50 CRÉDITOS</button>
+
+            <!-- ACCIONES DE ECONOMÍA RÁPIDA -->
+            <div class="actions-grid">
+                <button class="btn-action" onclick="reclamarDiario()">RECLAMAR DIARIO (+$100)</button>
+                <button class="btn-action" onclick="minarCreditos()">MINAR / TRABAJAR (+$50)</button>
+                <button class="btn-action" onclick="ejecutarCrimen()" style="grid-column: span 2;">COMETER CRIMEN (RIESGO)</button>
+            </div>
+
+            <!-- APUESTAS -->
+            <div class="bet-box">
+                <span style="font-size: 11px; font-weight: bold;">[ APUESTA RÁPIDA (50 / 50) ]</span>
+                <input type="number" id="bet-amount" placeholder="Cantidad a apostar...">
+                <button class="btn-action" onclick="apostarCreditos()">APOSTAR CRÉDITOS</button>
+            </div>
+
+            <!-- CONSOLA DE RESULTADOS -->
+            <div class="console-box" id="console-output">
+                > Sistema de economía listo. Selecciona una acción.
+            </div>
         </div>
     </div>
 
@@ -99,12 +125,12 @@
 
     <div class="nav-bar">
         <button class="nav-btn active" onclick="cambiarSeccion('inventario', this)">INVENTARIO</button>
-        <button class="nav-btn" onclick="cambiarSeccion('aleatorio', this)">RULETA</button>
+        <button class="nav-btn" onclick="cambiarSeccion('juego', this)">ZONA DE JUEGO</button>
         <button class="nav-btn" onclick="cambiarSeccion('tienda', this)">TIENDA</button>
     </div>
 
     <script>
-        const PASSWORD_ADMIN = "admin123"; // Contraseña del panel admin
+        const PASSWORD_ADMIN = "admin123";
         let usuarioActual = localStorage.getItem("telegramUser") || null;
         let datosUsuario = {};
         let listaPersonajesGlobal = [];
@@ -170,6 +196,12 @@
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             document.getElementById('section-' + seccion).classList.add('active');
             elemento.classList.add('active');
+        }
+
+        function logConsola(texto, color = "#00ff66") {
+            const box = document.getElementById('console-output');
+            box.style.color = color;
+            box.innerText = "> " + texto;
         }
 
         async function procesarBusqueda() {
@@ -275,25 +307,11 @@
             }
         }
 
-        async function minarCreditos() {
-            const res = await fetch('/api/minar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ telegramUser: usuarioActual })
-            });
-            const data = await res.json();
-            if (data.success) {
-                datosUsuario.saldo = data.nuevoSaldo;
-                document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
-                alert("¡Has ganado 50 créditos!");
-            }
-        }
-
         let girando = false;
         async function girarRuleta() {
             if (girando) return;
             if (datosUsuario.saldo < 30) {
-                alert("No tienes suficientes créditos (Necesitas 30).");
+                logConsola("No tienes suficientes créditos (Necesitas 30).", "red");
                 return;
             }
 
@@ -301,26 +319,114 @@
             const wheel = document.getElementById('wheel');
             const randomDeg = Math.floor(1800 + Math.random() * 1080);
             wheel.style.transform = `rotate(${randomDeg}deg)`;
+            logConsola("Girando ruleta gacha...", "yellow");
 
-            const res = await fetch('/api/ruleta', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ telegramUser: usuarioActual })
-            });
-            const data = await res.json();
+            try {
+                const res = await fetch('/api/ruleta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegramUser: usuarioActual })
+                });
+                const data = await res.json();
 
-            setTimeout(() => {
+                setTimeout(() => {
+                    girando = false;
+                    if (data.success) {
+                        datosUsuario.saldo = data.nuevoSaldo;
+                        datosUsuario.inventario.push(data.personaje);
+                        document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
+                        renderInventario();
+                        logConsola(`¡Ganaste en la ruleta a: ${data.personaje.id} (${data.personaje.rareza})!`, "#00ff66");
+                    } else {
+                        logConsola(data.error, "red");
+                    }
+                }, 3000);
+            } catch (e) {
                 girando = false;
+                logConsola("Error de conexión al girar.", "red");
+            }
+        }
+
+        async function reclamarDiario() {
+            try {
+                const res = await fetch('/api/diario', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegramUser: usuarioActual })
+                });
+                const data = await res.json();
                 if (data.success) {
                     datosUsuario.saldo = data.nuevoSaldo;
-                    datosUsuario.inventario.push(data.personaje);
                     document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
-                    renderInventario();
-                    alert(`¡Ganaste en la ruleta a: ${data.personaje.id}!`);
-                } else {
-                    alert(data.error);
+                    logConsola(data.mensaje, "#00ff66");
                 }
-            }, 3000);
+            } catch (e) {
+                logConsola("Error al reclamar diario.", "red");
+            }
+        }
+
+        async function minarCreditos() {
+            try {
+                const res = await fetch('/api/minar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegramUser: usuarioActual })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    datosUsuario.saldo = data.nuevoSaldo;
+                    document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
+                    logConsola(data.mensaje, "#00ff66");
+                }
+            } catch (e) {
+                logConsola("Error al minar.", "red");
+            }
+        }
+
+        async function ejecutarCrimen() {
+            try {
+                const res = await fetch('/api/crimen', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegramUser: usuarioActual })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    datosUsuario.saldo = data.nuevoSaldo;
+                    document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
+                    const color = data.mensaje.includes("ÉXITO") ? "#00ff66" : "red";
+                    logConsola(data.mensaje, color);
+                }
+            } catch (e) {
+                logConsola("Error en el crimen.", "red");
+            }
+        }
+
+        async function apostarCreditos() {
+            const cantidad = document.getElementById('bet-amount').value;
+            if (!cantidad || cantidad <= 0) {
+                logConsola("Introduce una cantidad válida para apostar.", "red");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/apostar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegramUser: usuarioActual, cantidad })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    datosUsuario.saldo = data.nuevoSaldo;
+                    document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
+                    const color = data.mensaje.includes("GANADA") ? "#00ff66" : "red";
+                    logConsola(data.mensaje, color);
+                } else {
+                    logConsola(data.error, "red");
+                }
+            } catch (e) {
+                logConsola("Error al procesar la apuesta.", "red");
+            }
         }
 
         async function enviarATelegram(personaje) {
