@@ -10,8 +10,8 @@
         
         /* PANTALLA DE REGISTRO */
         #modal-registro { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .registro-box { border: 1px solid #fff; padding: 20px; width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; background: #050505; }
-        .registro-box input { background: #000; border: 1px solid #fff; color: #fff; padding: 10px; font-family: monospace; font-size: 13px; outline: none; width: 100%; }
+        .registro-box { border: 1px solid #fff; padding: 20px; width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px; background: #050505; }
+        .registro-box input { background: #000; border: 1px solid #fff; color: #fff; padding: 10px; font-family: monospace; font-size: 12px; outline: none; width: 100%; }
         .registro-box button { background: #fff; color: #000; border: none; padding: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
 
         /* HEADER Y LUPA */
@@ -57,9 +57,9 @@
     <div id="modal-registro">
         <div class="registro-box">
             <h3 style="font-size: 14px; text-align: center;">REGISTRO DE USUARIO</h3>
-            <p style="font-size: 10px; color: #888; text-align: center;">Ingresa tus datos de la ficha de entrada</p>
+            <p style="font-size: 10px; color: #888; text-align: center;">Introduce los datos requeridos</p>
             <input type="text" id="reg-telegram" placeholder="User de Telegram (ej: usuario123)">
-            <input type="text" id="reg-nombre" placeholder="Nombre completo">
+            <input type="text" id="reg-nombre" placeholder="Nombre que usaste en la ficha de acceso">
             <input type="number" id="reg-edad" placeholder="Edad">
             <button onclick="registrarUsuario()">REGISTRARME</button>
         </div>
@@ -78,7 +78,7 @@
         <div class="grid" id="inventory-grid"></div>
     </div>
 
-    <!-- ALEATORIO (RULETA) -->
+    <!-- RULETA -->
     <div id="section-aleatorio" class="main-content">
         <div class="roulette-container">
             <div class="wheel-wrapper">
@@ -104,7 +104,7 @@
     </div>
 
     <script>
-        const PASSWORD_ADMIN = "admin123"; // Cambia tu contraseña de admin aquí
+        const PASSWORD_ADMIN = "admin123"; // Contraseña del panel admin
         let usuarioActual = localStorage.getItem("telegramUser") || null;
         let datosUsuario = {};
         let listaPersonajesGlobal = [];
@@ -147,15 +147,21 @@
                 return;
             }
 
-            const res = await fetch('/api/registrar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ telegramUser, nombre, edad })
-            });
-            const data = await res.json();
-            if (data.success) {
-                localStorage.setItem("telegramUser", telegramUser);
-                location.reload();
+            try {
+                const res = await fetch('/api/registrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegramUser, nombre, edad })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem("telegramUser", telegramUser);
+                    location.reload();
+                } else {
+                    alert(data.error || "Error al registrarse.");
+                }
+            } catch (err) {
+                alert("Error de conexión con el servidor.");
             }
         }
 
@@ -166,13 +172,12 @@
             elemento.classList.add('active');
         }
 
-        // LUPA / BUSCADOR Y PANEL ADMIN SECRETO
         async function procesarBusqueda() {
             const texto = document.getElementById('search-input').value.trim();
             const adminContainer = document.getElementById('admin-container');
 
             if (texto === PASSWORD_ADMIN) {
-                adminContainer.innerHTML = `<div class="admin-panel"><strong>PANEL ADMIN CARGANDO...</strong></div>`;
+                adminContainer.innerHTML = `<div class="admin-panel"><strong>CARGANDO PANEL ADMIN...</strong></div>`;
                 const res = await fetch('/api/admin/usuarios');
                 const users = await res.json();
                 
@@ -192,7 +197,6 @@
                 adminContainer.innerHTML = "";
             }
 
-            // Búsqueda normal en inventario
             const grid = document.getElementById('inventory-grid');
             const filtrados = datosUsuario.inventario.filter(p => 
                 p.id.toLowerCase().includes(texto.toLowerCase()) || 
@@ -205,7 +209,7 @@
                 return;
             }
 
-            grid.innerHTML = filtrados.map((p, idx) => `
+            grid.innerHTML = filtrados.map(p => `
                 <div class="card">
                     <div class="card-img" style="background-image: url('${p.imagen}');"></div>
                     <div class="card-text">
@@ -329,7 +333,7 @@
             if (data.success) {
                 alert("¡Personaje enviado al chat de Telegram con éxito!");
             } else {
-                alert("Error al enviar (configura tu Token del Bot en el servidor).");
+                alert("Error al enviar (configura tu Token de Telegram).");
             }
         }
 
@@ -337,7 +341,7 @@
             if (confirm(`¿Seguro que deseas eliminar la cuenta de @${telegramUser}?`)) {
                 await fetch(`/api/admin/usuario/${telegramUser}`, { method: 'DELETE' });
                 alert("Usuario eliminado de la base de datos.");
-                procesarBusqueda(); // Actualizar panel
+                procesarBusqueda();
             }
         }
 
