@@ -1,10 +1,14 @@
-[
-  {
-    "id": "lee_dong_wook",
-    "nombre": "Seo-moon-jo",
-    "origen": "#K-Drama",
-    "rareza": "legend",
-    "imagen": "https://github.com/j-wl100/telegram-gacha-app/blob/629584e35eba4db5902c641b9d93efdbecebdeeb/16c2369611140eb830345ff2a90cc4e2%20(1).jpg"
-  }
-]
-
+const personajesInventario = [
+    {
+        id: "Seo-moon-jo",
+        rareza: "UR",
+        categoria: "K-drama",
+        imagen: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60" // Reemplaza esta URL con la imagen de tu personaje
+    },
+    {
+        id: "Jong-woo",
+        rareza: "SRR",
+        categoria: "K-drama",
+        imagen: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=500&auto=format&fit=crop&q=60" // Reemplaza esta URL
+    },
+    {
