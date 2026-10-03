@@ -1,13 +1,14 @@
 {
-  "name": "gacha-app",
+  "name": "spyot-bot",
   "version": "1.0.0",
-  "description": "Gacha Mini App para Telegram",
+  "description": "Bot y Web Gacha",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "axios": "^1.7.9",
+    "express": "^4.21.2",
+    "mongoose": "^8.9.5"
   }
 }
-
