@@ -36,7 +36,6 @@
         .game-zone { display: flex; flex-direction: column; gap: 15px; padding-bottom: 20px; }
         .wheel-container { display: flex; flex-direction: column; align-items: center; border: 1px solid #fff; padding: 15px; gap: 10px; background: #050505; }
         .roulette-wrapper { position: relative; display: flex; justify-content: center; align-items: center; }
-        .roulette-wheel { width: 120px; height: 120px; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #000; transition: transform 3s cubic-bezier(0.15, 0.9, 0.2, 1); font-size: 11px; }
         
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn-action { border: 1px solid #fff; background: #000; color: #fff; padding: 10px; font-size: 11px; cursor: pointer; text-transform: uppercase; font-weight: bold; text-align: center; }
@@ -92,7 +91,8 @@
             <div class="wheel-container">
                 <span style="font-size: 11px; font-weight: bold;">[ RULETA GACHA DE PERSONAJES ]</span>
                 <div class="roulette-wrapper">
-                    <div class="roulette-wheel" id="wheel">[ GACHA ]</div>
+                    <!-- CANVAS DE LA RULETA VISUAL -->
+                    <canvas id="wheel" width="130" height="130" style="border: 2px solid #fff; border-radius: 50%; background: #000; transition: transform 3s cubic-bezier(0.15, 0.9, 0.2, 1);"></canvas>
                 </div>
                 <button class="btn-action" style="width: 100%;" onclick="girarRuleta()">GIRAR RULETA (-30 CRÉDITOS)</button>
             </div>
@@ -158,6 +158,11 @@
 
                 renderInventario();
                 renderTienda();
+
+                // Poner los primeros 6 nombres del JSON en la ruleta visual
+                const nombresRuleta = listaPersonajesGlobal.slice(0, 6).map(p => p.id);
+                if(nombresRuleta.length > 0) dibujarRuletaCanvas(nombresRuleta);
+
             } catch (e) {
                 console.error("Error al conectar con el servidor", e);
             }
@@ -276,7 +281,21 @@
 
         function renderTienda() {
             const shopGrid = document.getElementById('shop-grid');
-            shopGrid.innerHTML = listaPersonajesGlobal.map((p, index) => `
+            
+            // 1. Obtener lista de IDs que ya tengo en el inventario
+            const idsInventario = (datosUsuario.inventario || []).map(p => p.id);
+            
+            // 2. Filtrar para dejar solo los que NO tengo
+            const personajesDisponibles = listaPersonajesGlobal.filter(p => !idsInventario.includes(p.id));
+
+            if (personajesDisponibles.length === 0) {
+                shopGrid.innerHTML = `<div style="grid-column: span 2; text-align: center; color: #777; padding: 30px; font-size: 11px;">TODO COMPRADO</div>`;
+                return;
+            }
+
+            shopGrid.innerHTML = personajesDisponibles.map(p => {
+                const precio = p.precio || 100; // Mostrar el precio de personajes.json
+                return `
                 <div class="card">
                     <div class="card-img" style="background-image: url('${p.imagen}');"></div>
                     <div class="card-text">
@@ -284,27 +303,72 @@
                         RAREZA : ${p.rareza}<br>
                         #${p.categoria}
                     </div>
-                    <button class="btn-card-action" onclick="comprarPersonaje(${index})">COMPRAR ($100)</button>
+                    <button class="btn-card-action" onclick="comprarPersonaje('${p.id}')">COMPRAR ($${precio})</button>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
-        async function comprarPersonaje(index) {
+        async function comprarPersonaje(personajeId) {
             const res = await fetch('/api/comprar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ telegramUser: usuarioActual, personajeIndex: index })
+                // Enviamos el ID en lugar del index
+                body: JSON.stringify({ telegramUser: usuarioActual, personajeId: personajeId })
             });
             const data = await res.json();
             if (data.success) {
                 datosUsuario.saldo = data.nuevoSaldo;
+                if (!datosUsuario.inventario) datosUsuario.inventario = [];
                 datosUsuario.inventario.push(data.personaje);
                 document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
+                
+                // Actualizar vistas
                 renderInventario();
+                renderTienda(); 
+                
                 alert(`¡Has comprado a ${data.personaje.id}!`);
             } else {
                 alert(data.error);
             }
+        }
+
+        function dibujarRuletaCanvas(nombres) {
+            const canvas = document.getElementById("wheel");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            const radio = canvas.width / 2;
+            const centro = canvas.width / 2;
+            const anguloSeccion = (2 * Math.PI) / nombres.length;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            nombres.forEach((nombre, i) => {
+                const anguloInicio = i * anguloSeccion;
+                const anguloFin = anguloInicio + anguloSeccion;
+
+                // Dibujar rebanada
+                ctx.beginPath();
+                ctx.moveTo(centro, centro);
+                ctx.arc(centro, centro, radio, anguloInicio, anguloFin);
+                ctx.fillStyle = "#000";
+                ctx.fill();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = "#fff";
+                ctx.stroke();
+
+                // Escribir texto
+                ctx.save();
+                ctx.translate(centro, centro);
+                ctx.rotate(anguloInicio + anguloSeccion / 2);
+                ctx.textAlign = "right";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#fff";
+                ctx.font = "10px monospace";
+                // Acortar nombre si es muy largo
+                let textoCorto = nombre.length > 9 ? nombre.substring(0, 8) + "." : nombre;
+                ctx.fillText(textoCorto, radio - 8, 0);
+                ctx.restore();
+            });
         }
 
         let girando = false;
@@ -336,6 +400,10 @@
                         datosUsuario.inventario.push(data.personaje);
                         document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
                         renderInventario();
+                        
+                        // Refrescar tienda tras ganar un personaje para que desaparezca
+                        renderTienda(); 
+                        
                         logConsola(`¡Ganaste en la ruleta a: ${data.personaje.id} (${data.personaje.rareza})!`, "#00ff66");
                     } else {
                         logConsola(data.error, "red");
