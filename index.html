@@ -34,10 +34,10 @@
 
         .balance-box {
             border: 1px solid #ffffff;
-            padding: 8px 12px;
+            padding: 8px 15px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 15px;
             background: #000;
             white-space: nowrap;
         }
@@ -229,7 +229,7 @@
 
     <!-- HEADER GENERAL -->
     <div class="header">
-        <div class="balance-box" id="user-balance">⭐ 150</div>
+        <div class="balance-box" id="user-balance">$150</div>
         <div class="search-container">
             <span>🔍</span>
             <input type="text" class="search-input" id="search-input" placeholder="BUSCAR PERSONAJES" oninput="filtrarInventario()">
@@ -246,11 +246,13 @@
     <!-- SECCIÓN 2: ALEATORIO (RULETA) -->
     <div id="section-aleatorio" class="main-content">
         <div class="roulette-container">
-            <div class="roulette-pointer"></div>
-            <div class="roulette-wheel" id="wheel">
-                <div class="roulette-inner-text">[ GACHA ]</div>
+            <div style="position: relative;">
+                <div class="roulette-pointer"></div>
+                <div class="roulette-wheel" id="wheel">
+                    <div class="roulette-inner-text">[ GACHA ]</div>
+                </div>
             </div>
-            <button class="btn-action" id="spin-btn" onclick="girarRuleta()">EJECUTAR TIRADA (50 ⭐)</button>
+            <button class="btn-action" id="spin-btn" onclick="girarRuleta()">EJECUTAR TIRADA ($50)</button>
         </div>
     </div>
 
@@ -262,14 +264,14 @@
                     <strong>Pack x100 Créditos</strong><br>
                     <small>Recarga estándar</small>
                 </div>
-                <button class="btn-action" onclick="comprar(100, 0)">COMPRAR</button>
+                <button class="btn-action" onclick="comprar(100)">COMPRAR</button>
             </div>
             <div class="shop-item">
                 <div>
                     <strong>Cofre Legendario</strong><br>
                     <small>Garantiza SSR</small>
                 </div>
-                <button class="btn-action" onclick="comprar(0, 1)">COMPRAR</button>
+                <button class="btn-action" onclick="comprar(0)">COMPRAR</button>
             </div>
         </div>
     </div>
@@ -282,7 +284,7 @@
     </div>
 
     <script>
-        // BASE DE DATOS DE PERSONAJES (puedes editar aquí tus URLs de imágenes y datos)
+        // BASE DE DATOS DE PERSONAJES (Puedes cambiar las URLs aquí cuando quieras)
         const personajesInventario = [
             {
                 id: "CHI-01",
@@ -312,7 +314,6 @@
 
         let saldo = 150;
 
-        // Renderizar inventario inicial
         function renderInventario(filtro = "") {
             const grid = document.getElementById('inventory-grid');
             const filtrados = personajesInventario.filter(p => 
@@ -338,13 +339,11 @@
             `).join('');
         }
 
-        // Filtrar al escribir en la lupa
         function filtrarInventario() {
             const texto = document.getElementById('search-input').value;
             renderInventario(texto);
         }
 
-        // Cambiar entre pestañas inferiores
         function cambiarSeccion(seccion, elemento) {
             document.querySelectorAll('.main-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -353,46 +352,42 @@
             elemento.classList.add('active');
         }
 
-        // Lógica de la Ruleta Animada
         let girando = false;
         function girarRuleta() {
             if (girando) return;
             if (saldo < 50) {
-                alert("Saldo insuficiente para tirar.");
+                alert("Saldo insuficiente.");
                 return;
             }
 
             saldo -= 50;
-            document.getElementById('user-balance').innerText = "⭐ " + saldo;
+            document.getElementById('user-balance').innerText = "$" + saldo;
 
             girando = true;
             const wheel = document.getElementById('wheel');
             const btn = document.getElementById('spin-btn');
             btn.disabled = true;
 
-            // Generar giros aleatorios múltiples vueltas (ej. 5 vueltas completas + grados extra)
             const randomDeg = Math.floor(1800 + Math.random() * 1080);
             wheel.style.transform = `rotate(${randomDeg}deg)`;
 
             setTimeout(() => {
                 girando = false;
                 btn.disabled = false;
-                alert("¡Tirada exitosa! Revisa tu inventario.");
+                alert("¡Tirada exitosa!");
             }, 3000);
         }
 
-        // Lógica de Tienda
-        function comprar(creditos, cofre) {
+        function comprar(creditos) {
             if (creditos > 0) {
                 saldo += creditos;
-                document.getElementById('user-balance').innerText = "⭐ " + saldo;
-                alert(`¡Has comprado ${creditos} créditos con éxito!`);
+                document.getElementById('user-balance').innerText = "$" + saldo;
+                alert(`¡Compra exitosa! Saldo actual: $${saldo}`);
             } else {
-                alert("¡Cofre adquirido! Se ha añadido a tus recompensas.");
+                alert("¡Cofre adquirido!");
             }
         }
 
-        // Inicializar al cargar
         window.addEventListener('DOMContentLoaded', () => {
             renderInventario();
         });
