@@ -73,7 +73,7 @@
                 </div>
                 <button class="shop-btn" onclick="comprarCreditos(100)">COMPRAR</button>
             </div>
-            <!-- Aquí se cargarán los personajes del JSON automáticamente -->
+            <!-- Los personajes se cargarán aquí automáticamente con el mismo formato -->
         </div>
     </div>
 
@@ -84,24 +84,26 @@
     </div>
 
     <script>
-        const currentUserId = "usuario_prueba_1"; // Cambia esto por el ID del usuario real o de Telegram
+        const currentUserId = "usuario_prueba_1"; 
         let saldo = 150;
         let inventarioUsuario = [];
         let listaPersonajesGlobal = [];
 
         async function inicializarApp() {
-            // Cargar datos de MongoDB
-            const resUser = await fetch(`/api/usuario/${currentUserId}`);
-            const dataUser = await resUser.json();
-            saldo = dataUser.saldo;
-            inventarioUsuario = dataUser.inventario;
-            document.getElementById('user-balance').innerText = "$" + saldo;
-            renderInventario();
+            try {
+                const resUser = await fetch(`/api/usuario/${currentUserId}`);
+                const dataUser = await resUser.json();
+                saldo = dataUser.saldo ?? 150;
+                inventarioUsuario = dataUser.inventario || [];
+                document.getElementById('user-balance').innerText = "$" + saldo;
+                renderInventario();
 
-            // Cargar personajes.json para la tienda
-            const resP = await fetch('/personajes.json');
-            listaPersonajesGlobal = await resP.json();
-            cargarTiendaPersonajes();
+                const resP = await fetch('/personajes.json');
+                listaPersonajesGlobal = await resP.json();
+                cargarTiendaPersonajes();
+            } catch (e) {
+                console.error("Error al inicializar:", e);
+            }
         }
 
         // Lupa / Buscador en tiempo real
@@ -160,26 +162,32 @@
             const randomDeg = Math.floor(1800 + Math.random() * 1080);
             wheel.style.transform = `rotate(${randomDeg}deg)`;
 
-            const res = await fetch('/api/ruleta', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: currentUserId })
-            });
-            const data = await res.json();
+            try {
+                const res = await fetch('/api/ruleta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUserId })
+                });
+                const data = await res.json();
 
-            setTimeout(() => {
+                setTimeout(() => {
+                    girando = false;
+                    btn.disabled = false;
+                    if (data.success) {
+                        saldo = data.nuevoSaldo;
+                        inventarioUsuario.push(data.personaje);
+                        document.getElementById('user-balance').innerText = "$" + saldo;
+                        alert(`¡Has obtenido a: ${data.personaje.id} (${data.personaje.rareza})!`);
+                        renderInventario();
+                    } else {
+                        alert(data.error || "Error al girar");
+                    }
+                }, 3000);
+            } catch (err) {
                 girando = false;
                 btn.disabled = false;
-                if (data.success) {
-                    saldo = data.nuevoSaldo;
-                    inventarioUsuario.push(data.personaje);
-                    document.getElementById('user-balance').innerText = "$" + saldo;
-                    alert(`¡Has obtenido a: ${data.personaje.id} (${data.personaje.rareza})!`);
-                    renderInventario();
-                } else {
-                    alert(data.error || "Error al girar");
-                }
-            }, 3000);
+                alert("Error de conexión con el servidor.");
+            }
         }
 
         function cargarTiendaPersonajes() {
@@ -187,12 +195,9 @@
             listaPersonajesGlobal.forEach((personaje, index) => {
                 shopContainer.innerHTML += `
                     <div class="shop-item">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 35px; height: 35px; background-image: url('${personaje.imagen}'); background-size: cover; background-position: center; border: 1px solid #fff;"></div>
-                            <div>
-                                <strong>${personaje.id}</strong><br>
-                                <small>Rareza: ${personaje.rareza} | #${personaje.categoria}</small>
-                            </div>
+                        <div>
+                            <strong>${personaje.id}</strong><br>
+                            <small>Rareza: ${personaje.rareza} | #${personaje.categoria}</small>
                         </div>
                         <button class="shop-btn" onclick="comprarPersonajeDirecto(${index})">COMPRAR ($150)</button>
                     </div>
@@ -206,21 +211,25 @@
                 return;
             }
 
-            const res = await fetch('/api/comprar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: currentUserId, personajeIndex: index })
-            });
-            const data = await res.json();
+            try {
+                const res = await fetch('/api/comprar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUserId, personajeIndex: index })
+                });
+                const data = await res.json();
 
-            if (data.success) {
-                saldo = data.nuevoSaldo;
-                inventarioUsuario.push(data.personaje);
-                document.getElementById('user-balance').innerText = "$" + saldo;
-                alert(`¡Has comprado a ${data.personaje.id}! Ya está en tu inventario.`);
-                renderInventario();
-            } else {
-                alert(data.error || "Error en la compra");
+                if (data.success) {
+                    saldo = data.nuevoSaldo;
+                    inventarioUsuario.push(data.personaje);
+                    document.getElementById('user-balance').innerText = "$" + saldo;
+                    alert(`¡Has comprado a ${data.personaje.id}! Ya está en tu inventario.`);
+                    renderInventario();
+                } else {
+                    alert(data.error || "Error en la compra");
+                }
+            } catch (err) {
+                alert("Error de conexión con el servidor.");
             }
         }
 
