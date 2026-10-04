@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', userSchema);
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "TU_TOKEN_DE_TELEGRAM_AQUI";
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8550303174:AAGJtPRhbPtIuIM5fbR7W5tjPg7H9UilHYY";
 
 // REGISTRO DE NUEVO USUARIO (CORREGIDO)
 app.post('/api/registrar', async (req, res) => {
