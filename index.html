@@ -52,8 +52,8 @@
         .nav-btn:last-child { border-right: none; }
         .nav-btn.active { background: #fff; color: #000; font-weight: bold; }
 
-        /* PANEL ADMIN */
-        .admin-panel { padding: 10px; background: #111; border: 1px solid red; margin-bottom: 15px; }
+        /* PANEL ADMIN (ACTUALIZADO A AZUL CYBER Y BLANCO) */
+        .admin-panel { padding: 10px; background: #050505; border: 1px solid #00d2ff; margin-bottom: 15px; }
         .admin-user-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #444; padding: 8px 0; font-size: 11px; }
     </style>
 </head>
@@ -84,34 +84,29 @@
         <div class="grid" id="inventory-grid"></div>
     </div>
 
-    <!-- ZONA DE JUEGO (RULETA Y ECONOMÍA) -->
+    <!-- ZONA DE JUEGO -->
     <div id="section-juego" class="main-content">
         <div class="game-zone">
-            <!-- GACHA / RULETA -->
             <div class="wheel-container">
                 <span style="font-size: 11px; font-weight: bold;">[ RULETA GACHA DE PERSONAJES ]</span>
                 <div class="roulette-wrapper">
-                    <!-- CANVAS DE LA RULETA VISUAL -->
                     <canvas id="wheel" width="130" height="130" style="border: 2px solid #fff; border-radius: 50%; background: #000; transition: transform 3s cubic-bezier(0.15, 0.9, 0.2, 1);"></canvas>
                 </div>
                 <button class="btn-action" style="width: 100%;" onclick="girarRuleta()">GIRAR RULETA (-30 CRÉDITOS)</button>
             </div>
 
-            <!-- ACCIONES DE ECONOMÍA RÁPIDA -->
             <div class="actions-grid">
                 <button class="btn-action" onclick="reclamarDiario()">RECLAMAR DIARIO (+$100)</button>
                 <button class="btn-action" onclick="minarCreditos()">MINAR / TRABAJAR (+$50)</button>
                 <button class="btn-action" onclick="ejecutarCrimen()" style="grid-column: span 2;">COMETER CRIMEN (RIESGO)</button>
             </div>
 
-            <!-- APUESTAS -->
             <div class="bet-box">
                 <span style="font-size: 11px; font-weight: bold;">[ APUESTA RÁPIDA (50 / 50) ]</span>
                 <input type="number" id="bet-amount" placeholder="Cantidad a apostar...">
                 <button class="btn-action" onclick="apostarCreditos()">APOSTAR CRÉDITOS</button>
             </div>
 
-            <!-- CONSOLA DE RESULTADOS -->
             <div class="console-box" id="console-output">
                 > Sistema de economía listo. Selecciona una acción.
             </div>
@@ -159,7 +154,6 @@
                 renderInventario();
                 renderTienda();
 
-                // Poner los primeros 6 nombres del JSON en la ruleta visual
                 const nombresRuleta = listaPersonajesGlobal.slice(0, 6).map(p => p.id);
                 if(nombresRuleta.length > 0) dibujarRuletaCanvas(nombresRuleta);
 
@@ -214,17 +208,17 @@
             const adminContainer = document.getElementById('admin-container');
 
             if (texto === PASSWORD_ADMIN) {
-                adminContainer.innerHTML = `<div class="admin-panel"><strong>CARGANDO PANEL ADMIN...</strong></div>`;
+                adminContainer.innerHTML = `<div class="admin-panel"><strong style="color: #00d2ff;">CARGANDO PANEL ADMIN...</strong></div>`;
                 const res = await fetch('/api/admin/usuarios');
                 const users = await res.json();
                 
                 adminContainer.innerHTML = `
                     <div class="admin-panel">
-                        <p style="font-weight: bold; margin-bottom: 8px; color: yellow;">PANEL DE CONTROL DE USUARIOS</p>
+                        <p style="font-weight: bold; margin-bottom: 8px; color: #00d2ff; letter-spacing: 1px;">PANEL DE CONTROL DE USUARIOS</p>
                         ${users.map(u => `
                             <div class="admin-user-row">
-                                <span>@${u.telegramUser} (${u.nombre}, ${u.edad} años) - $${u.saldo}</span>
-                                <button onclick="eliminarUsuario('${u.telegramUser}')" style="background:red; color:#fff; border:none; padding:4px 8px; cursor:pointer;">BORRAR</button>
+                                <span style="color: #fff;">@${u.telegramUser} (${u.nombre}, ${u.edad} años) - $${u.saldo}</span>
+                                <button onclick="eliminarUsuario('${u.telegramUser}')" style="background:#000; color:#fff; border:1px solid #fff; padding:4px 8px; cursor:pointer; font-family: monospace;">BORRAR</button>
                             </div>
                         `).join('')}
                     </div>
@@ -281,11 +275,7 @@
 
         function renderTienda() {
             const shopGrid = document.getElementById('shop-grid');
-            
-            // 1. Obtener lista de IDs que ya tengo en el inventario
             const idsInventario = (datosUsuario.inventario || []).map(p => p.id);
-            
-            // 2. Filtrar para dejar solo los que NO tengo
             const personajesDisponibles = listaPersonajesGlobal.filter(p => !idsInventario.includes(p.id));
 
             if (personajesDisponibles.length === 0) {
@@ -294,7 +284,7 @@
             }
 
             shopGrid.innerHTML = personajesDisponibles.map(p => {
-                const precio = p.precio || 100; // Mostrar el precio de personajes.json
+                const precio = p.precio || 100;
                 return `
                 <div class="card">
                     <div class="card-img" style="background-image: url('${p.imagen}');"></div>
@@ -312,7 +302,6 @@
             const res = await fetch('/api/comprar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // Enviamos el ID en lugar del index
                 body: JSON.stringify({ telegramUser: usuarioActual, personajeId: personajeId })
             });
             const data = await res.json();
@@ -321,11 +310,8 @@
                 if (!datosUsuario.inventario) datosUsuario.inventario = [];
                 datosUsuario.inventario.push(data.personaje);
                 document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
-                
-                // Actualizar vistas
                 renderInventario();
                 renderTienda(); 
-                
                 alert(`¡Has comprado a ${data.personaje.id}!`);
             } else {
                 alert(data.error);
@@ -336,7 +322,6 @@
             const canvas = document.getElementById("wheel");
             if (!canvas) return;
             
-            // Corrección de nitidez para pantallas de móviles
             const size = 130;
             const dpr = window.devicePixelRatio || 1;
             canvas.width = size * dpr;
@@ -357,7 +342,6 @@
                 const anguloInicio = i * anguloSeccion;
                 const anguloFin = anguloInicio + anguloSeccion;
 
-                // Dibujar rebanada
                 ctx.beginPath();
                 ctx.moveTo(centro, centro);
                 ctx.arc(centro, centro, radio, anguloInicio, anguloFin);
@@ -367,7 +351,6 @@
                 ctx.strokeStyle = "#fff";
                 ctx.stroke();
 
-                // Escribir texto
                 ctx.save();
                 ctx.translate(centro, centro);
                 ctx.rotate(anguloInicio + anguloSeccion / 2);
@@ -411,10 +394,7 @@
                         datosUsuario.inventario.push(data.personaje);
                         document.getElementById('user-balance').innerText = "$" + datosUsuario.saldo;
                         renderInventario();
-                        
-                        // Refrescar tienda tras ganar un personaje para que desaparezca
                         renderTienda(); 
-                        
                         logConsola(`¡Ganaste en la ruleta a: ${data.personaje.id} (${data.personaje.rareza})!`, "#00ff66");
                     } else {
                         logConsola(data.error, "red");
@@ -518,7 +498,7 @@
             if (data.success) {
                 alert("¡Personaje enviado al chat de Telegram con éxito!");
             } else {
-                alert("Error al enviar (configura tu Token de Telegram).");
+                alert("Error al enviar: Asegúrate de configurar el Token del Bot en el servidor.");
             }
         }
 
