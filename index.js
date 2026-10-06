@@ -243,3 +243,25 @@ app.delete('/api/admin/usuario/:telegramUser', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
+
+// ENVIAR A TELEGRAM (MODIFICADO PARA ENVIAR FOTO + INFO)
+app.post('/api/enviar-telegram', async (req, res) => {
+    const { telegramUser, personaje } = req.body;
+    try {
+        const mensaje = `🎮 *PERSONAJE SELECCIONADO* 🎮\n👤 Usuario: @${telegramUser}\n🆔 ID: ${personaje.id}\n⭐ Rareza: ${personaje.rareza}\n🏷️ Categoría: #${personaje.categoria}`;
+        
+        // Cambiamos sendMessage por sendPhoto
+        await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+            chat_id: `@${telegramUser}`,
+            photo: personaje.imagen, // Toma el link de la imagen de tu personajes.json
+            caption: mensaje,        // El texto ahora se manda como caption (pie de foto)
+            parse_mode: "Markdown"
+        });
+        
+        res.json({ success: true });
+    } catch (e) {
+        console.error("Error Telegram:", e.response ? e.response.data : e.message);
+        res.status(500).json({ error: "No se pudo enviar a Telegram" });
+    }
+});
+
